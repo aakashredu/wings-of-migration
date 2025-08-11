@@ -1,0 +1,222 @@
+{
+  "title": "Bird Migration Data Schema",
+  "description": "Schema for bird migration tracking data",
+  "type": "object",
+  "properties": {
+    "Bird_ID": {
+      "type": "string",
+      "description": "Bird Id",
+      "example": "B1000"
+    },
+    "Species": {
+      "type": "string",
+      "description": "Species",
+      "example": "Warbler"
+    },
+    "Region": {
+      "type": "string",
+      "description": "Region",
+      "example": "South America"
+    },
+    "Habitat": {
+      "type": "string",
+      "description": "Habitat",
+      "example": "Grassland"
+    },
+    "Weather_Condition": {
+      "type": "string",
+      "description": "Weather Condition",
+      "example": "Stormy"
+    },
+    "Migration_Reason": {
+      "type": "string",
+      "description": "Migration Reason",
+      "example": "Feeding"
+    },
+    "Start_Latitude": {
+      "type": "number",
+      "description": "Start Latitude",
+      "example": "11.9065664413375"
+    },
+    "Start_Longitude": {
+      "type": "number",
+      "description": "Start Longitude",
+      "example": "-169.378250688302"
+    },
+    "End_Latitude": {
+      "type": "number",
+      "description": "End Latitude",
+      "example": "30.3776466643031"
+    },
+    "End_Longitude": {
+      "type": "number",
+      "description": "End Longitude",
+      "example": "-21.366879258392"
+    },
+    "Flight_Distance_km": {
+      "type": "number",
+      "description": "Flight Distance Km in kilometers",
+      "example": "1753.79"
+    },
+    "Flight_Duration_hours": {
+      "type": "number",
+      "description": "Flight Duration Hours in hours",
+      "example": "49.5"
+    },
+    "Average_Speed_kmph": {
+      "type": "number",
+      "description": "Average Speed Kmph in kilometers per hour",
+      "example": "47.82"
+    },
+    "Max_Altitude_m": {
+      "type": "number",
+      "description": "Max Altitude M in meters",
+      "example": "5280"
+    },
+    "Min_Altitude_m": {
+      "type": "number",
+      "description": "Min Altitude M in meters",
+      "example": "285"
+    },
+    "Temperature_C": {
+      "type": "number",
+      "description": "Temperature C in Celsius",
+      "example": "-2.2"
+    },
+    "Wind_Speed_kmph": {
+      "type": "number",
+      "description": "Wind Speed Kmph in kilometers per hour",
+      "example": "9.1"
+    },
+    "Humidity_%": {
+      "type": "number",
+      "description": "Humidity % in percentage",
+      "example": "43"
+    },
+    "Pressure_hPa": {
+      "type": "number",
+      "description": "Pressure Hpa in hectopascals",
+      "example": "1030.3"
+    },
+    "Visibility_km": {
+      "type": "number",
+      "description": "Visibility Km in kilometers",
+      "example": "1.5"
+    },
+    "Nesting_Success": {
+      "type": "string",
+      "description": "Nesting Success",
+      "example": "No"
+    },
+    "Tag_Battery_Level_%": {
+      "type": "number",
+      "description": "Tag Battery Level % in percentage",
+      "example": "45"
+    },
+    "Signal_Strength_dB": {
+      "type": "number",
+      "description": "Signal Strength Db in decibels",
+      "example": "-64.9"
+    },
+    "Migration_Start_Month": {
+      "type": "string",
+      "description": "Migration Start Month",
+      "example": "Jan"
+    },
+    "Migration_End_Month": {
+      "type": "string",
+      "description": "Migration End Month",
+      "example": "Apr"
+    },
+    "Rest_Stops": {
+      "type": "number",
+      "description": "Rest Stops",
+      "example": "3"
+    },
+    "Predator_Sightings": {
+      "type": "number",
+      "description": "Predator Sightings",
+      "example": "6"
+    },
+    "Tag_Type": {
+      "type": "string",
+      "description": "Tag Type",
+      "example": "Radio"
+    },
+    "Migrated_in_Flock": {
+      "type": "string",
+      "description": "Migrated In Flock",
+      "example": "Yes"
+    },
+    "Flock_Size": {
+      "type": "number",
+      "description": "Flock Size",
+      "example": "264"
+    },
+    "Food_Supply_Level": {
+      "type": "string",
+      "description": "Food Supply Level",
+      "example": "Low"
+    },
+    "Tracking_Quality": {
+      "type": "string",
+      "description": "Tracking Quality",
+      "example": "Excellent"
+    },
+    "Migration_Interrupted": {
+      "type": "string",
+      "description": "Migration Interrupted",
+      "example": "Yes"
+    },
+    "Interrupted_Reason": {
+      "type": "string",
+      "description": "Interrupted Reason",
+      "example": "Storm"
+    },
+    "Tagged_By": {
+      "type": "string",
+      "description": "Tagged By",
+      "example": "Researcher_A"
+    },
+    "Tag_Weight_g": {
+      "type": "number",
+      "description": "Tag Weight G in grams",
+      "example": "27.0"
+    },
+    "Migration_Success": {
+      "type": "string",
+      "description": "Migration Success",
+      "example": "Failed"
+    },
+    "Recovery_Location_Known": {
+      "type": "string",
+      "description": "Recovery Location Known",
+      "example": "No"
+    },
+    "Recovery_Time_days": {
+      "type": "number",
+      "description": "Recovery Time Days in days",
+      "example": "102"
+    },
+    "Observation_Counts": {
+      "type": "number",
+      "description": "Observation Counts",
+      "example": "56"
+    },
+    "Observation_Quality": {
+      "type": "string",
+      "description": "Observation Quality",
+      "example": "Low"
+    },
+    "Origin": {
+      "type": "string",
+      "description": "Origin",
+      "example": "11.906566441337574, -169.37825068830264"
+    },
+    "Destination": {
+      "type": "string",
+      "description": "Destination",
+      "example": "30.377646664303118, -21.36687925839209"
+    }
+  }
+}
