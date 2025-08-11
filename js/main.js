@@ -1771,16 +1771,255 @@ function animateSustainabilityStats() {
     });
 }
 
+// Mobile detection and optimization
+const isMobile = () => {
+    return window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+};
+
+// Optimize performance for mobile devices
+const optimizeForMobile = () => {
+    if (isMobile()) {
+        // Reduce animation complexity on mobile
+        document.documentElement.style.setProperty('--transition', '0.2s ease');
+        
+        // Disable auto-rotation animations on mobile
+        animationActive = false;
+        
+        // Add mobile-specific viewport meta tag if not present
+        if (!document.querySelector('meta[name="viewport"]')) {
+            const viewport = document.createElement('meta');
+            viewport.name = 'viewport';
+            viewport.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';
+            document.head.appendChild(viewport);
+        }
+        
+        // Add touch-friendly event listeners
+        addMobileTouchHandlers();
+        
+        // Optimize scroll behavior for mobile
+        optimizeMobileScrolling();
+    }
+};
+
+// Add mobile touch event handlers
+const addMobileTouchHandlers = () => {
+    // Add touch feedback to interactive elements
+    const interactiveElements = document.querySelectorAll(
+        '.bird-card-small, .chart-segment, .action-item, .challenge-card, .connection-point, .timeline-phase, button'
+    );
+    
+    interactiveElements.forEach(element => {
+        // Add touch start/end handlers for visual feedback
+        element.addEventListener('touchstart', function() {
+            this.style.transform = 'scale(0.98)';
+            this.style.transition = 'transform 0.1s ease';
+        }, { passive: true });
+        
+        element.addEventListener('touchend', function() {
+            this.style.transform = '';
+            this.style.transition = '';
+        }, { passive: true });
+        
+        element.addEventListener('touchcancel', function() {
+            this.style.transform = '';
+            this.style.transition = '';
+        }, { passive: true });
+    });
+    
+    // Add swipe gesture support for bird selection
+    let touchStartX = 0;
+    let touchStartY = 0;
+    
+    document.addEventListener('touchstart', function(e) {
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+    }, { passive: true });
+    
+    document.addEventListener('touchend', function(e) {
+        if (!touchStartX || !touchStartY) return;
+        
+        const touchEndX = e.changedTouches[0].clientX;
+        const touchEndY = e.changedTouches[0].clientY;
+        
+        const diffX = touchStartX - touchEndX;
+        const diffY = touchStartY - touchEndY;
+        
+        // Only process horizontal swipes that are significant
+        if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 50) {
+            const birdGrid = document.querySelector('.bird-grid');
+            if (birdGrid && birdGrid.contains(e.target)) {
+                // Swipe left or right to change birds
+                const availableBirds = allBirds.filter(bird => bird !== selectedBird);
+                const currentIndex = availableBirds.indexOf(selectedBird);
+                
+                if (diffX > 0 && currentIndex < availableBirds.length - 1) {
+                    // Swiped left, go to next bird
+                    updateSelectedBird(availableBirds[currentIndex + 1]);
+                } else if (diffX < 0 && currentIndex > 0) {
+                    // Swiped right, go to previous bird
+                    updateSelectedBird(availableBirds[currentIndex - 1]);
+                }
+            }
+        }
+        
+        touchStartX = 0;
+        touchStartY = 0;
+    }, { passive: true });
+};
+
+// Optimize scrolling behavior for mobile
+const optimizeMobileScrolling = () => {
+    // Smooth scroll polyfill for mobile browsers
+    if (!('scrollBehavior' in document.documentElement.style)) {
+        let scrollTimer = null;
+        
+        const smoothScrollTo = (element) => {
+            if (scrollTimer) {
+                clearInterval(scrollTimer);
+            }
+            
+            const targetPosition = element.offsetTop;
+            const startPosition = window.pageYOffset;
+            const distance = targetPosition - startPosition;
+            const duration = 1000;
+            let start = null;
+            
+            const animation = (currentTime) => {
+                if (start === null) start = currentTime;
+                const timeElapsed = currentTime - start;
+                const run = easeInOutQuart(timeElapsed, startPosition, distance, duration);
+                window.scrollTo(0, run);
+                if (timeElapsed < duration) requestAnimationFrame(animation);
+            };
+            
+            const easeInOutQuart = (t, b, c, d) => {
+                t /= d / 2;
+                if (t < 1) return c / 2 * t * t * t * t + b;
+                t -= 2;
+                return -c / 2 * (t * t * t * t - 2) + b;
+            };
+            
+            requestAnimationFrame(animation);
+        };
+        
+        // Override smooth scroll behavior
+        const originalScrollIntoView = Element.prototype.scrollIntoView;
+        Element.prototype.scrollIntoView = function(options) {
+            if (options && options.behavior === 'smooth') {
+                smoothScrollTo(this);
+            } else {
+                originalScrollIntoView.call(this, options);
+            }
+        };
+    }
+    
+    // Optimize scroll indicator for mobile
+    const scrollIndicator = document.querySelector('.scroll-indicator');
+    if (scrollIndicator && isMobile()) {
+        // Hide scroll indicator faster on mobile
+        const handleScroll = () => {
+            const scrollTop = window.scrollY || window.pageYOffset;
+            const shouldShow = scrollTop < 10;
+            
+            if (shouldShow) {
+                scrollIndicator.style.opacity = '1';
+                scrollIndicator.classList.remove('hidden');
+            } else {
+                scrollIndicator.style.opacity = '0';
+                scrollIndicator.classList.add('hidden');
+            }
+        };
+        
+        window.addEventListener('scroll', handleScroll, { passive: true });
+    }
+    
+    // Prevent overscroll bounce on iOS
+    document.addEventListener('touchmove', function(e) {
+        if (e.target === document.body || e.target === document.documentElement) {
+            e.preventDefault();
+        }
+    }, { passive: false });
+};
+
+// Optimize 3D globe for mobile devices
+const optimizeMobileGlobe = () => {
+    if (isMobile() && renderer) {
+        // Reduce rendering quality on mobile for better performance
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        
+        // Reduce globe complexity
+        if (globe && globe.geometry) {
+            const geometry = globe.geometry;
+            if (geometry.parameters) {
+                geometry.parameters.widthSegments = Math.min(geometry.parameters.widthSegments, 32);
+                geometry.parameters.heightSegments = Math.min(geometry.parameters.heightSegments, 32);
+            }
+        }
+        
+        // Disable continuous rotation on mobile to save battery
+        animationActive = false;
+    }
+};
+
+// Handle orientation changes on mobile
+const handleOrientationChange = () => {
+    if (isMobile()) {
+        setTimeout(() => {
+            // Recalculate dimensions after orientation change
+            if (renderer && camera) {
+                const container = document.getElementById('earth-globe-container');
+                if (container) {
+                    const width = container.clientWidth;
+                    const height = container.clientHeight;
+                    
+                    camera.aspect = width / height;
+                    camera.updateProjectionMatrix();
+                    renderer.setSize(width, height);
+                }
+            }
+            
+            // Trigger resize event for other components
+            window.dispatchEvent(new Event('resize'));
+        }, 100);
+    }
+};
+
+// Optimize chart interactions for mobile
+const optimizeMobileChart = () => {
+    if (isMobile()) {
+        // Increase touch target areas for chart segments
+        const chartSegments = document.querySelectorAll('.chart-segment');
+        chartSegments.forEach(segment => {
+            segment.style.strokeWidth = '3'; // Make segments easier to touch
+        });
+        
+        // Add haptic feedback for chart interactions (if supported)
+        chartSegments.forEach(segment => {
+            segment.addEventListener('touchstart', () => {
+                if ('vibrate' in navigator) {
+                    navigator.vibrate(50); // Short vibration
+                }
+            }, { passive: true });
+        });
+    }
+};
+
 // Initialize everything when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
     // Create the HTML structure
     createHTMLStructure();
+    
+    // Apply mobile optimizations first
+    optimizeForMobile();
     
     // Initialize functionality
     initTypewriter();
     animateStats();
     initScrollIndicator();
     updateSelectedBird('stork');
+    
+    // Optimize chart for mobile after creation
+    setTimeout(optimizeMobileChart, 100);
     
     // Add event listener to Begin Journey button
     document.querySelector('.begin-journey-btn').addEventListener('click', showJourneySection);
@@ -1804,19 +2043,34 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     document.querySelector('.secondary-action-btn').addEventListener('click', function() {
-        // Simulate sharing functionality
+        // Enhanced sharing functionality for mobile
         if (navigator.share) {
             navigator.share({
                 title: 'Wings of Migration',
                 text: 'Discover the incredible world of bird migration and how we can help protect these amazing journeys.',
                 url: window.location.href
+            }).catch((error) => {
+                console.log('Error sharing:', error);
+                // Fallback to clipboard
+                if (navigator.clipboard) {
+                    navigator.clipboard.writeText(window.location.href).then(() => {
+                        alert('Link copied to clipboard!');
+                    });
+                }
             });
         } else {
             // Fallback for browsers that don't support Web Share API
             const url = window.location.href;
-            navigator.clipboard.writeText(url).then(() => {
-                alert('Link copied to clipboard!');
-            });
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(url).then(() => {
+                    alert('Link copied to clipboard!');
+                }).catch(() => {
+                    // Final fallback - show URL
+                    alert('Share this link: ' + url);
+                });
+            } else {
+                alert('Share this link: ' + url);
+            }
         }
     });
     
@@ -1824,4 +2078,8 @@ document.addEventListener('DOMContentLoaded', function() {
         // Simulate opening external link to learn more
         alert('Redirecting to additional resources...');
     });
+    
+    // Add orientation change handler
+    window.addEventListener('orientationchange', handleOrientationChange);
+    window.addEventListener('resize', handleOrientationChange);
 });
