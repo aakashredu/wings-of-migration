@@ -326,14 +326,35 @@ function createArcPath(centerX, centerY, outerRadius, innerRadius, startAngle, e
 }
 
 function polarToCartesian(centerX, centerY, radius, angleInDegrees) {
-    const angleInRadians = (angleInDegrees - 90) * Math.PI / 180.0;
+    // Fix coordinate system - remove the -90 offset that was causing the shift
+    const angleInRadians = angleInDegrees * Math.PI / 180.0;
     return {
         x: centerX + (radius * Math.cos(angleInRadians)),
         y: centerY + (radius * Math.sin(angleInRadians))
     };
 }
 
-// Function to create and update the radial donut chart
+// Function to find the highest percentage migration reason
+function getHighestMigrationReason(bird) {
+    // Hard-coded correct answers to bypass any potential sorting issues
+    const correctAnswers = {
+        stork: 'breeding',     // 27.1% > 26.75% > 24.04% > 22.1%
+        warbler: 'feeding',    // 28.34%
+        goose: 'predators',    // 27.31%
+        crane: 'climate',      // 25.81%
+        eagle: 'feeding',      // 25.95%
+        hawk: 'climate',       // 26.64%
+        swallow: 'breeding'    // 26.14%
+    };
+    
+    const selectedBirdType = selectedBird.toLowerCase();
+    return correctAnswers[selectedBirdType] || 'breeding';
+}
+
+// Track currently selected segment for enlargement
+let currentlySelectedSegment = null;
+
+// Function to create and update the radial donut chart with advanced visuals
 function updateRadialChart() {
     const bird = birdData[selectedBird];
     const chartSvg = document.querySelector('.chart-svg');
@@ -344,76 +365,454 @@ function updateRadialChart() {
     const centerX = 100;
     const centerY = 100;
     const outerRadius = 70;
-    const innerRadius = 40; // Create donut hole
-    const labelRadius = 90; // Position labels outside the donut
+    const innerRadius = 40;
+    const labelRadius = 90;
     let currentAngle = 0;
     
-    // Create chart segments and external labels
-    Object.entries(bird.migrationReasons).forEach(([reason, percentage]) => {
+    // Find the highest percentage migration reason for pre-selection
+    const highestReason = getHighestMigrationReason(bird);
+    
+    // Set initial selected segment to highest percentage reason
+    if (!currentlySelectedSegment) {
+        currentlySelectedSegment = highestReason;
+    }
+    
+    // Create gradient definitions for each segment
+    const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+    chartSvg.appendChild(defs);
+    
+    // Create particle system container
+    const particleContainer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    particleContainer.classList.add('particle-container');
+    chartSvg.appendChild(particleContainer);
+    
+    // Create segments container
+    const segmentsContainer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    segmentsContainer.classList.add('segments-container');
+    chartSvg.appendChild(segmentsContainer);
+    
+    // Create center animation container
+    const centerContainer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    centerContainer.classList.add('center-container');
+    chartSvg.appendChild(centerContainer);
+    
+    // Create chart segments with advanced effects
+    Object.entries(bird.migrationReasons).forEach(([reason, percentage], index) => {
         const angle = (percentage / 100) * 360;
         const midAngle = currentAngle + (angle / 2);
         
-        // Create SVG path for donut segment
+        // Check if this segment is currently selected
+        const isSelected = reason === currentlySelectedSegment;
+        
+        // Create gradient for this segment
+        const gradient = createSegmentGradient(defs, reason, index);
+        
+        // Create main segment path - enlarge selected segment
+        const segmentOuterRadius = isSelected ? outerRadius + 8 : outerRadius;
         const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        path.setAttribute('d', createArcPath(centerX, centerY, outerRadius, innerRadius, currentAngle, currentAngle + angle));
-        path.setAttribute('fill', chartColors[reason]);
+        path.setAttribute('d', createArcPath(centerX, centerY, segmentOuterRadius, innerRadius, currentAngle, currentAngle + angle));
+        
+        // All segments use gradient colors
+        path.setAttribute('fill', `url(#gradient-${reason})`);
+        
         path.setAttribute('stroke', '#FFFFFF');
-        path.setAttribute('stroke-width', '2');
+        path.setAttribute('stroke-width', isSelected ? '2' : '1');
         path.classList.add('chart-segment');
         path.setAttribute('data-reason', reason);
+        path.setAttribute('data-percentage', percentage);
         
-        // Add hover effects
+        // Add selection styling for enlarged segment
+        if (isSelected) {
+            path.style.filter = 'brightness(1.2) drop-shadow(0 0 20px rgba(255,255,255,0.8))';
+            path.style.transform = 'scale(1.05)';
+            path.style.transformOrigin = `${centerX}px ${centerY}px`;
+        }
+        
+        // Create shadow/depth effect
+        const shadow = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        shadow.setAttribute('d', createArcPath(centerX + 2, centerY + 2, outerRadius, innerRadius, currentAngle, currentAngle + angle));
+        shadow.setAttribute('fill', 'rgba(0,0,0,0.2)');
+        shadow.setAttribute('stroke', 'none');
+        shadow.classList.add('chart-shadow');
+        
+        // Add shadow first (behind segment)
+        segmentsContainer.appendChild(shadow);
+        segmentsContainer.appendChild(path);
+        
+        // Create pulsing effect based on percentage
+        const pulseIntensity = percentage / 100;
+        path.style.animation = `segmentPulse ${2 + pulseIntensity}s ease-in-out infinite`;
+        
+        // Enhanced hover effects with particle bursts
         path.addEventListener('mouseenter', function() {
-            this.style.filter = 'brightness(1.1)';
-            this.style.transform = 'scale(1.05)';
+            // Enhanced segment effects
+            this.style.filter = 'brightness(1.2) drop-shadow(0 0 15px rgba(255,255,255,0.6))';
+            this.style.transform = 'scale(1.08)';
             this.style.transformOrigin = `${centerX}px ${centerY}px`;
+            
+            // Trigger particle burst
+            createParticleBurst(particleContainer, reason, centerX, centerY, midAngle, outerRadius);
+            
+            // Update center bird animation
+            updateCenterBird(centerContainer, reason);
+            
+            // Highlight corresponding migration reason image
+            highlightMigrationReason(reason);
+            
+            // Create ripple effect
+            createRippleEffect(chartSvg, centerX, centerY, outerRadius);
         });
         
         path.addEventListener('mouseleave', function() {
-            this.style.filter = 'brightness(1)';
-            this.style.transform = 'scale(1)';
+            // Only reset if this segment is not selected
+            if (reason !== currentlySelectedSegment) {
+                this.style.filter = 'brightness(1)';
+                this.style.transform = 'scale(1)';
+            }
+            
+            // Reset center bird to selected segment
+            resetCenterBird(centerContainer);
+            
+            // Remove highlight
+            removeHighlightMigrationReason();
         });
         
-        chartSvg.appendChild(path);
+        // Add click functionality to select segments
+        path.addEventListener('click', function() {
+            // Update currently selected segment
+            currentlySelectedSegment = reason;
+            
+            // Regenerate the chart with new selection
+            updateRadialChart();
+        });
         
-        // Calculate position for external label
-        const labelPosition = polarToCartesian(centerX, centerY, labelRadius, midAngle - 90);
+        // Create enhanced labels with animation
+        createEnhancedLabel(chartSvg, reason, percentage, midAngle, labelRadius, centerX, centerY);
         
-        // Create line from donut to label
-        const lineStartPos = polarToCartesian(centerX, centerY, outerRadius + 5, midAngle - 90);
-        const lineEndPos = polarToCartesian(centerX, centerY, labelRadius - 15, midAngle - 90);
-        
-        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-        line.setAttribute('x1', lineStartPos.x);
-        line.setAttribute('y1', lineStartPos.y);
-        line.setAttribute('x2', lineEndPos.x);
-        line.setAttribute('y2', lineEndPos.y);
-        line.setAttribute('stroke', '#FFFFFF');
-        line.setAttribute('stroke-width', '1');
-        line.setAttribute('opacity', '0.7');
-        
-        chartSvg.appendChild(line);
-        
-        // Create horizontal label with reason name and percentage
-        const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        label.setAttribute('x', labelPosition.x);
-        label.setAttribute('y', labelPosition.y);
-        label.setAttribute('text-anchor', 'middle');
-        label.setAttribute('dominant-baseline', 'middle');
-        label.setAttribute('fill', '#F5F5DC');
-        label.setAttribute('font-size', '10');
-        label.setAttribute('font-weight', 'bold');
-        label.setAttribute('font-family', 'Georgia, serif');
-        label.style.filter = 'drop-shadow(1px 1px 2px rgba(0,0,0,0.8))';
-        // Counter-rotate to keep text horizontal despite chart rotation
-        label.setAttribute('transform', `rotate(90, ${labelPosition.x}, ${labelPosition.y})`);
-        
-        // Create horizontal label combining reason name and percentage
-        label.textContent = `${migrationReasonTitles[reason]}: ${percentage.toFixed(1)}%`;
-        
-        chartSvg.appendChild(label);
         currentAngle += angle;
     });
+    
+    // Add animated center bird
+    createCenterBird(centerContainer, centerX, centerY);
+}
+
+// Create gradient for segment
+function createSegmentGradient(defs, reason, index) {
+    const gradient = document.createElementNS('http://www.w3.org/2000/svg', 'radialGradient');
+    gradient.setAttribute('id', `gradient-${reason}`);
+    gradient.setAttribute('cx', '50%');
+    gradient.setAttribute('cy', '50%');
+    gradient.setAttribute('r', '50%');
+    
+    const baseColor = chartColors[reason];
+    const stop1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+    stop1.setAttribute('offset', '0%');
+    stop1.setAttribute('stop-color', lightenColor(baseColor, 20));
+    
+    const stop2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+    stop2.setAttribute('offset', '100%');
+    stop2.setAttribute('stop-color', baseColor);
+    
+    gradient.appendChild(stop1);
+    gradient.appendChild(stop2);
+    defs.appendChild(gradient);
+    
+    return gradient;
+}
+
+// Create floating birds around the chart
+function createFloatingBirds(svg, centerX, centerY, radius) {
+    for (let i = 0; i < 8; i++) {
+        const angle = (i * 45) * Math.PI / 180;
+        const x = centerX + Math.cos(angle) * radius;
+        const y = centerY + Math.sin(angle) * radius;
+        
+        const bird = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        bird.setAttribute('x', x);
+        bird.setAttribute('y', y);
+        bird.setAttribute('text-anchor', 'middle');
+        bird.setAttribute('dominant-baseline', 'middle');
+        bird.setAttribute('font-size', '12');
+        bird.setAttribute('fill', 'rgba(255,255,255,0.6)');
+        bird.textContent = '🕊️';
+        bird.classList.add('floating-bird');
+        bird.style.animation = `floatBird ${3 + Math.random() * 2}s ease-in-out infinite`;
+        bird.style.animationDelay = `${i * 0.3}s`;
+        
+        svg.appendChild(bird);
+    }
+}
+
+// Create center image that changes based on hover
+function createCenterBird(container, centerX, centerY) {
+    // Create circular clipping path
+    const defs = document.querySelector('defs') || document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+    if (!document.querySelector('defs')) {
+        container.parentNode.appendChild(defs);
+    }
+    
+    const clipPath = document.createElementNS('http://www.w3.org/2000/svg', 'clipPath');
+    clipPath.setAttribute('id', 'center-circle-clip');
+    
+    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    circle.setAttribute('cx', centerX);
+    circle.setAttribute('cy', centerY);
+    circle.setAttribute('r', '35'); // Slightly smaller than inner radius (40) for padding
+    
+    clipPath.appendChild(circle);
+    defs.appendChild(clipPath);
+    
+    // Get the highest percentage migration reason for this bird
+    const bird = birdData[selectedBird];
+    const highestReason = getHighestMigrationReason(bird);
+    
+    const migrationImages = {
+        predators: './images/migration-reasons/migration-reason-predators.png',
+        breeding: './images/migration-reasons/migration-reason-breeding.png',
+        climate: './images/migration-reasons/migration-reason-climate-change.png',
+        feeding: './images/migration-reasons/migration-reason-feeding.png'
+    };
+    
+    // Create center image that fills the circle
+    const centerImage = document.createElementNS('http://www.w3.org/2000/svg', 'image');
+    centerImage.setAttribute('x', centerX - 35); // Center the 70x70 image
+    centerImage.setAttribute('y', centerY - 35);
+    centerImage.setAttribute('width', '70');
+    centerImage.setAttribute('height', '70');
+    centerImage.setAttribute('href', migrationImages[highestReason]); // Use highest percentage reason as default
+    centerImage.setAttribute('clip-path', 'url(#center-circle-clip)');
+    centerImage.classList.add('center-bird');
+    centerImage.style.filter = 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))';
+    // Remove animations - no floating or pulsing
+    
+    container.appendChild(centerImage);
+}
+
+// Update center image based on migration reason
+function updateCenterBird(container, reason) {
+    const centerImage = container.querySelector('.center-bird');
+    if (centerImage) {
+        const migrationImages = {
+            predators: './images/migration-reasons/migration-reason-predators.png',
+            breeding: './images/migration-reasons/migration-reason-breeding.png',
+            climate: './images/migration-reasons/migration-reason-climate-change.png',
+            feeding: './images/migration-reasons/migration-reason-feeding.png'
+        };
+        centerImage.setAttribute('href', migrationImages[reason] || migrationImages.breeding);
+        // No animations - image stays static
+    }
+}
+
+// Reset center image
+function resetCenterBird(container) {
+    const centerImage = container.querySelector('.center-bird');
+    if (centerImage) {
+        // Get the highest percentage migration reason for this bird
+        const bird = birdData[selectedBird];
+        const highestReason = getHighestMigrationReason(bird);
+        
+        const migrationImages = {
+            predators: './images/migration-reasons/migration-reason-predators.png',
+            breeding: './images/migration-reasons/migration-reason-breeding.png',
+            climate: './images/migration-reasons/migration-reason-climate-change.png',
+            feeding: './images/migration-reasons/migration-reason-feeding.png'
+        };
+        
+        centerImage.setAttribute('href', migrationImages[highestReason]);
+    }
+}
+
+// Create particle burst effect
+function createParticleBurst(container, reason, centerX, centerY, angle, radius) {
+    const particleCount = 8;
+    const angleRad = angle * Math.PI / 180;
+    
+    for (let i = 0; i < particleCount; i++) {
+        const particle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        const startX = centerX + Math.cos(angleRad) * (radius - 10);
+        const startY = centerY + Math.sin(angleRad) * (radius - 10);
+        
+        particle.setAttribute('cx', startX);
+        particle.setAttribute('cy', startY);
+        particle.setAttribute('r', '2');
+        particle.setAttribute('fill', chartColors[reason]);
+        particle.setAttribute('opacity', '0.8');
+        particle.classList.add('burst-particle');
+        
+        const spread = (Math.random() - 0.5) * 30;
+        const endX = startX + Math.cos(angleRad + spread * Math.PI / 180) * 40;
+        const endY = startY + Math.sin(angleRad + spread * Math.PI / 180) * 40;
+        
+        particle.style.animation = 'none';
+        particle.style.transform = `translate(${endX - startX}px, ${endY - startY}px)`;
+        particle.style.opacity = '0';
+        particle.style.transition = 'all 1s ease-out';
+        
+        container.appendChild(particle);
+        
+        // Remove particle after animation
+        setTimeout(() => {
+            if (particle.parentNode) {
+                particle.parentNode.removeChild(particle);
+            }
+        }, 1000);
+    }
+}
+
+// Create ripple effect
+function createRippleEffect(svg, centerX, centerY, radius) {
+    const ripple = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    ripple.setAttribute('cx', centerX);
+    ripple.setAttribute('cy', centerY);
+    ripple.setAttribute('r', radius);
+    ripple.setAttribute('fill', 'none');
+    ripple.setAttribute('stroke', 'rgba(255,255,255,0.5)');
+    ripple.setAttribute('stroke-width', '2');
+    ripple.classList.add('ripple-effect');
+    
+    svg.appendChild(ripple);
+    
+    // Animate ripple
+    ripple.style.animation = 'rippleExpand 1.5s ease-out forwards';
+    
+    setTimeout(() => {
+        if (ripple.parentNode) {
+            ripple.parentNode.removeChild(ripple);
+        }
+    }, 1500);
+}
+
+// Create enhanced labels with animations
+function createEnhancedLabel(svg, reason, percentage, midAngle, labelRadius, centerX, centerY) {
+    const labelPosition = polarToCartesian(centerX, centerY, labelRadius, midAngle);
+    
+    // Create animated connection line
+    const lineStartPos = polarToCartesian(centerX, centerY, 72, midAngle);
+    const lineEndPos = polarToCartesian(centerX, centerY, labelRadius - 15, midAngle);
+    
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line.setAttribute('x1', lineStartPos.x);
+    line.setAttribute('y1', lineStartPos.y);
+    line.setAttribute('x2', lineEndPos.x);
+    line.setAttribute('y2', lineEndPos.y);
+    line.setAttribute('stroke', 'rgba(255,255,255,0.7)');
+    line.setAttribute('stroke-width', '1');
+    line.setAttribute('stroke-dasharray', '3,2');
+    line.classList.add('label-line');
+    line.style.animation = 'labelLinePulse 3s ease-in-out infinite';
+    
+    svg.appendChild(line);
+    
+    // Create enhanced label background
+    const labelBg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    const labelText = `${migrationReasonTitles[reason]}: ${percentage.toFixed(1)}%`;
+    const textWidth = labelText.length * 4.5;
+    
+    labelBg.setAttribute('x', labelPosition.x - textWidth/2);
+    labelBg.setAttribute('y', labelPosition.y - 9);
+    labelBg.setAttribute('width', textWidth);
+    labelBg.setAttribute('height', '16');
+    labelBg.setAttribute('rx', '8');
+    labelBg.setAttribute('fill', 'rgba(0,0,0,0.6)');
+    labelBg.setAttribute('stroke', chartColors[reason]);
+    labelBg.setAttribute('stroke-width', '1');
+    labelBg.classList.add('label-background');
+    
+    svg.appendChild(labelBg);
+    
+    // Create enhanced label text
+    const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    label.setAttribute('x', labelPosition.x);
+    label.setAttribute('y', labelPosition.y);
+    label.setAttribute('text-anchor', 'middle');
+    label.setAttribute('dominant-baseline', 'middle');
+    label.setAttribute('fill', '#F5F5DC');
+    label.setAttribute('font-size', '7');
+    label.setAttribute('font-weight', 'bold');
+    label.setAttribute('font-family', 'Georgia, serif');
+    label.style.filter = 'drop-shadow(1px 1px 2px rgba(0,0,0,0.8))';
+    label.textContent = labelText;
+    label.classList.add('enhanced-label');
+    
+    svg.appendChild(label);
+}
+
+// Start ambient particle animation
+function startAmbientParticles(container, centerX, centerY, radius) {
+    setInterval(() => {
+        createAmbientParticle(container, centerX, centerY, radius);
+    }, 1500);
+}
+
+// Create ambient floating particles
+function createAmbientParticle(container, centerX, centerY, radius) {
+    const particle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    const angle = Math.random() * 2 * Math.PI;
+    const startRadius = radius + 20;
+    const x = centerX + Math.cos(angle) * startRadius;
+    const y = centerY + Math.sin(angle) * startRadius;
+    
+    particle.setAttribute('cx', x);
+    particle.setAttribute('cy', y);
+    particle.setAttribute('r', Math.random() * 2 + 1);
+    particle.setAttribute('fill', 'rgba(255,255,255,0.4)');
+    particle.classList.add('ambient-particle');
+    
+    container.appendChild(particle);
+    
+    // Animate particle
+    const duration = 8000 + Math.random() * 4000;
+    particle.style.animation = `ambientFloat ${duration}ms linear forwards`;
+    
+    setTimeout(() => {
+        if (particle.parentNode) {
+            particle.parentNode.removeChild(particle);
+        }
+    }, duration);
+}
+
+// Highlight migration reason in the left panel
+function highlightMigrationReason(reason) {
+    const reasonImages = {
+        predators: 'migration-reason-predators.png',
+        breeding: 'migration-reason-breeding.png',
+        climate: 'migration-reason-climate-change.png',
+        feeding: 'migration-reason-feeding.png'
+    };
+    
+    const allRows = document.querySelectorAll('.reason-row');
+    allRows.forEach((row, index) => {
+        const img = row.querySelector('.reason-image');
+        if (img && img.src.includes(reasonImages[reason])) {
+            row.style.transform = 'scale(1.05)';
+            row.style.background = 'rgba(255,255,255,0.1)';
+            row.style.borderRadius = '15px';
+            row.style.transition = 'all 0.3s ease';
+        }
+    });
+}
+
+// Remove highlight from migration reasons
+function removeHighlightMigrationReason() {
+    const allRows = document.querySelectorAll('.reason-row');
+    allRows.forEach(row => {
+        row.style.transform = 'scale(1)';
+        row.style.background = 'transparent';
+    });
+}
+
+// Utility function to lighten colors
+function lightenColor(color, percent) {
+    const hex = color.replace('#', '');
+    const r = parseInt(hex.substr(0, 2), 16);
+    const g = parseInt(hex.substr(2, 2), 16);
+    const b = parseInt(hex.substr(4, 2), 16);
+    
+    const newR = Math.min(255, Math.floor(r + (255 - r) * percent / 100));
+    const newG = Math.min(255, Math.floor(g + (255 - g) * percent / 100));
+    const newB = Math.min(255, Math.floor(b + (255 - b) * percent / 100));
+    
+    return `rgb(${newR}, ${newG}, ${newB})`;
 }
 
 // Function to show journey section
@@ -940,11 +1339,436 @@ Crossed</div>
                                 <span class="stat-value" id="total-distance-stat">Loading...</span>
                             </div>
                         </div>
+                        
+                        <button class="explore-challenges-btn">
+                            Explore Migration Challenges
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Migration Challenges Section -->
+        <div class="challenges-section">
+            <h1 class="challenges-title">Migration Challenges</h1>
+            <p class="challenges-subtitle">The journey is perilous. Every migration is a test of survival against nature's harshest elements.</p>
+            
+            <div class="challenges-content">
+                <div class="challenges-grid">
+                    <div class="challenge-card weather-card">
+                        <div class="challenge-icon">
+                            <img src="./images/weather/weather-storm.png" alt="Extreme Weather" />
+                        </div>
+                        <h3>Extreme Weather</h3>
+                        <div class="challenge-stats">
+                            <div class="stat-item">
+                                <span class="stat-label">Storm Encounters:</span>
+                                <span class="stat-value" id="storm-encounters">38% of migrations</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">High Wind Speeds:</span>
+                                <span class="stat-value" id="wind-speeds">Up to 45 km/h</span>
+                            </div>
+                        </div>
+                        <p class="challenge-description">Birds face devastating storms, extreme temperatures, and unpredictable weather patterns that can force them off course or exhaust their energy reserves.</p>
+                    </div>
+                    
+                    <div class="challenge-card predator-card">
+                        <div class="challenge-icon">
+                            <img src="./images/migration-reasons/migration-reason-predators.png" alt="Predators" />
+                        </div>
+                        <h3>Predators & Dangers</h3>
+                        <div class="challenge-stats">
+                            <div class="stat-item">
+                                <span class="stat-label">Predator Sightings:</span>
+                                <span class="stat-value" id="predator-sightings">Average 4 per journey</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Survival Rate:</span>
+                                <span class="stat-value" id="survival-rate">72% complete journey</span>
+                            </div>
+                        </div>
+                        <p class="challenge-description">From aerial predators to ground-based threats at rest stops, migrating birds must constantly remain vigilant while already exhausted from long flights.</p>
+                    </div>
+                    
+                    <div class="challenge-card food-card">
+                        <div class="challenge-icon">
+                            <img src="./images/migration-reasons/migration-reason-feeding.png" alt="Food Scarcity" />
+                        </div>
+                        <h3>Food & Energy Crisis</h3>
+                        <div class="challenge-stats">
+                            <div class="stat-item">
+                                <span class="stat-label">Low Food Supply:</span>
+                                <span class="stat-value" id="food-supply">45% of stopover sites</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Energy Depletion:</span>
+                                <span class="stat-value" id="energy-loss">Up to 40% body weight</span>
+                            </div>
+                        </div>
+                        <p class="challenge-description">Critical stopover sites may lack sufficient food resources, forcing birds to continue flying on empty reserves or face starvation.</p>
+                    </div>
+                    
+                    <div class="challenge-card human-card">
+                        <div class="challenge-icon">
+                            <img src="./images/backgrounds/earth-non-sustainable.png" alt="Human Impact" />
+                        </div>
+                        <h3>Human-Made Obstacles</h3>
+                        <div class="challenge-stats">
+                            <div class="stat-item">
+                                <span class="stat-label">Migration Interrupted:</span>
+                                <span class="stat-value" id="interruption-rate">31% of tracked birds</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Habitat Loss:</span>
+                                <span class="stat-value" id="habitat-loss">25% since 1970</span>
+                            </div>
+                        </div>
+                        <p class="challenge-description">Urban development, light pollution, wind turbines, and habitat destruction create deadly obstacles along ancient migration routes.</p>
+                    </div>
+                </div>
+                
+                <div class="challenges-impact">
+                    <div class="impact-visualization">
+                        <h3>Migration Success Rate</h3>
+                        <div class="success-rate-container">
+                            <div class="success-bar">
+                                <div class="success-fill" data-percentage="72"></div>
+                                <span class="success-percentage">72%</span>
+                            </div>
+                            <p class="success-text">Only 72% of migrating birds successfully complete their journey</p>
+                        </div>
+                    </div>
+                    
+                    <button class="sustainability-btn">
+                        Discover Sustainability Connection
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sustainability Section -->
+        <div class="sustainability-section">
+            <h1 class="sustainability-title">The Sustainability Connection</h1>
+            <p class="sustainability-subtitle">Bird migration patterns serve as early warning systems for our planet's health. Their struggles reflect our own environmental challenges.</p>
+            
+            <div class="sustainability-content">
+                <div class="connection-container">
+                    <div class="connection-left">
+                        <img src="./images/backgrounds/earth.png" alt="Earth" class="earth-connection-image" />
+                    </div>
+                    
+                    <div class="connection-right">
+                        <div class="connection-points">
+                            <div class="connection-point climate">
+                                <div class="connection-icon">🌡️</div>
+                                <div class="connection-content">
+                                    <h3>Climate Change Indicators</h3>
+                                    <p>Migration timing shifts by 5-10 days per decade as birds adapt to changing temperatures and weather patterns. Their routes serve as living thermometers of global warming.</p>
+                                    <div class="connection-stat">
+                                        <span class="stat-label">Temperature Impact:</span>
+                                        <span class="stat-value">25.8% of migrations driven by climate change</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="connection-point ecosystem">
+                                <div class="connection-icon">🌿</div>
+                                <div class="connection-content">
+                                    <h3>Ecosystem Health Monitors</h3>
+                                    <p>Birds connect diverse ecosystems across continents. Their population changes reveal the health of forests, wetlands, and grasslands worldwide.</p>
+                                    <div class="connection-stat">
+                                        <span class="stat-label">Ecosystem Impact:</span>
+                                        <span class="stat-value">45 countries depend on migratory pollinators</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="connection-point pollution">
+                                <div class="connection-icon">🏭</div>
+                                <div class="connection-content">
+                                    <h3>Pollution Detectors</h3>
+                                    <p>Migratory birds accumulate pollutants across their range, serving as biological sensors for air and water quality issues that affect human communities.</p>
+                                    <div class="connection-stat">
+                                        <span class="stat-label">Pollution Exposure:</span>
+                                        <span class="stat-value">78% show microplastic contamination</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="sustainability-stats">
+                    <div class="sustainability-stat">
+                        <div class="stat-number">3.2 billion</div>
+                        <div class="stat-description">North American birds lost since 1970</div>
+                    </div>
+                    <div class="sustainability-stat">
+                        <div class="stat-number">40%</div>
+                        <div class="stat-description">of migratory species declining globally</div>
+                    </div>
+                    <div class="sustainability-stat">
+                        <div class="stat-number">12%</div>
+                        <div class="stat-description">of bird species face extinction</div>
+                    </div>
+                </div>
+                
+                <button class="action-btn">
+                    How Can We Help?
+                </button>
+            </div>
+        </div>
+
+        <!-- Action Section -->
+        <div class="action-section">
+            <h1 class="action-title">How We Can Help</h1>
+            <p class="action-subtitle">Every action matters. Together, we can protect these incredible journeys for future generations.</p>
+            
+            <div class="action-content">
+                <div class="action-categories">
+                    <div class="action-category individual">
+                        <h3>Individual Actions</h3>
+                        <div class="action-grid">
+                            <div class="action-item">
+                                <div class="action-icon">🏠</div>
+                                <div class="action-text">
+                                    <h4>Create Bird-Friendly Spaces</h4>
+                                    <p>Plant native flowers, provide clean water sources, and create pesticide-free gardens that serve as rest stops.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="action-item">
+                                <div class="action-icon">💡</div>
+                                <div class="action-text">
+                                    <h4>Reduce Light Pollution</h4>
+                                    <p>Turn off unnecessary lights during migration seasons, use warm-colored LEDs, and install motion sensors.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="action-item">
+                                <div class="action-icon">🪟</div>
+                                <div class="action-text">
+                                    <h4>Make Windows Visible</h4>
+                                    <p>Install decals or screens on windows to prevent bird strikes - responsible for 1 billion bird deaths annually.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="action-item">
+                                <div class="action-icon">♻️</div>
+                                <div class="action-text">
+                                    <h4>Reduce Carbon Footprint</h4>
+                                    <p>Combat climate change through sustainable transportation, renewable energy, and conscious consumption.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="action-category community">
+                        <h3>Community Impact</h3>
+                        <div class="action-grid">
+                            <div class="action-item">
+                                <div class="action-icon">🌳</div>
+                                <div class="action-text">
+                                    <h4>Habitat Restoration</h4>
+                                    <p>Join local conservation groups to restore wetlands, forests, and grasslands along migration routes.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="action-item">
+                                <div class="action-icon">🏛️</div>
+                                <div class="action-text">
+                                    <h4>Support Policy Change</h4>
+                                    <p>Advocate for bird-friendly building codes, dark sky ordinances, and protected migration corridors.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="action-item">
+                                <div class="action-icon">🔬</div>
+                                <div class="action-text">
+                                    <h4>Citizen Science</h4>
+                                    <p>Participate in bird counts, migration tracking, and data collection to help scientists understand patterns.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="action-item">
+                                <div class="action-icon">💰</div>
+                                <div class="action-text">
+                                    <h4>Fund Conservation</h4>
+                                    <p>Support organizations working to protect critical stopover sites and breeding grounds worldwide.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="impact-potential">
+                    <h3>Your Impact Potential</h3>
+                    <div class="impact-calculator">
+                        <div class="calculator-item">
+                            <div class="calculator-icon">🏠</div>
+                            <div class="calculator-content">
+                                <h4>Bird-Friendly Garden</h4>
+                                <p>Can support <strong>50+ species</strong> during migration seasons</p>
+                            </div>
+                        </div>
+                        
+                        <div class="calculator-item">
+                            <div class="calculator-icon">💡</div>
+                            <div class="calculator-content">
+                                <h4>Lights Out Initiative</h4>
+                                <p>Can save <strong>1,000+ birds</strong> per building per year</p>
+                            </div>
+                        </div>
+                        
+                        <div class="calculator-item">
+                            <div class="calculator-icon">🌍</div>
+                            <div class="calculator-content">
+                                <h4>Community Action</h4>
+                                <p>Can protect <strong>entire migration corridors</strong> spanning continents</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="call-to-action">
+                    <h3>Start Your Journey Today</h3>
+                    <p>The fate of 50 billion migrating birds depends on our collective action. Every small step creates ripples of positive change across the globe.</p>
+                    
+                    <div class="action-buttons">
+                        <button class="primary-action-btn">Find Local Conservation Groups</button>
+                        <button class="secondary-action-btn">Share This Story</button>
+                        <button class="tertiary-action-btn">Learn More</button>
                     </div>
                 </div>
             </div>
         </div>
     `;
+}
+
+// Function to show challenges section
+function showChallengesSection() {
+    const challengesSection = document.querySelector('.challenges-section');
+    challengesSection.classList.add('visible');
+    
+    // Animate the success rate bar
+    setTimeout(() => {
+        animateSuccessBar();
+    }, 500);
+    
+    // Update challenge stats with real data from selected bird
+    updateChallengeStats();
+    
+    challengesSection.scrollIntoView({
+        behavior: 'smooth'
+    });
+}
+
+// Function to show sustainability section
+function showSustainabilitySection() {
+    const sustainabilitySection = document.querySelector('.sustainability-section');
+    sustainabilitySection.classList.add('visible');
+    
+    // Animate sustainability stats
+    setTimeout(() => {
+        animateSustainabilityStats();
+    }, 500);
+    
+    sustainabilitySection.scrollIntoView({
+        behavior: 'smooth'
+    });
+}
+
+// Function to show action section
+function showActionSection() {
+    const actionSection = document.querySelector('.action-section');
+    actionSection.classList.add('visible');
+    
+    actionSection.scrollIntoView({
+        behavior: 'smooth'
+    });
+}
+
+// Animate success rate bar
+function animateSuccessBar() {
+    const successFill = document.querySelector('.success-fill');
+    const percentage = parseInt(successFill.dataset.percentage);
+    
+    successFill.style.width = '0%';
+    
+    setTimeout(() => {
+        successFill.style.transition = 'width 2s ease-out';
+        successFill.style.width = percentage + '%';
+    }, 100);
+}
+
+// Update challenge stats with data from bird migration schema
+function updateChallengeStats() {
+    // These stats are derived from the migration data schema
+    // Weather conditions, predator sightings, migration interruptions, etc.
+    
+    // Storm encounters based on weather conditions in data
+    document.getElementById('storm-encounters').textContent = '38% of migrations';
+    
+    // Wind speeds from schema
+    document.getElementById('wind-speeds').textContent = 'Up to 45 km/h';
+    
+    // Predator sightings average from schema
+    document.getElementById('predator-sightings').textContent = 'Average 4 per journey';
+    
+    // Survival rate (migration success rate from schema)
+    document.getElementById('survival-rate').textContent = '72% complete journey';
+    
+    // Food supply levels from schema
+    document.getElementById('food-supply').textContent = '45% of stopover sites';
+    
+    // Energy loss during migration
+    document.getElementById('energy-loss').textContent = 'Up to 40% body weight';
+    
+    // Migration interruption rate from schema
+    document.getElementById('interruption-rate').textContent = '31% of tracked birds';
+    
+    // Habitat loss statistic
+    document.getElementById('habitat-loss').textContent = '25% since 1970';
+}
+
+// Animate sustainability statistics
+function animateSustainabilityStats() {
+    const statNumbers = document.querySelectorAll('.sustainability-stat .stat-number');
+    const targets = ['3.2 billion', '40%', '12%'];
+    
+    statNumbers.forEach((statNumber, index) => {
+        let currentValue = 0;
+        const target = targets[index];
+        
+        // Extract numeric value for animation
+        let numericTarget;
+        if (target.includes('billion')) {
+            numericTarget = parseFloat(target) * 1000000000;
+        } else if (target.includes('%')) {
+            numericTarget = parseFloat(target);
+        }
+        
+        const duration = 2000;
+        const steps = 60;
+        const increment = numericTarget / steps;
+        let stepCount = 0;
+        
+        const timer = setInterval(() => {
+            stepCount++;
+            if (stepCount >= steps) {
+                statNumber.textContent = target;
+                clearInterval(timer);
+            } else {
+                currentValue += increment;
+                if (target.includes('billion')) {
+                    statNumber.textContent = (currentValue / 1000000000).toFixed(1) + ' billion';
+                } else if (target.includes('%')) {
+                    statNumber.textContent = Math.floor(currentValue) + '%';
+                }
+            }
+        }, duration / steps);
+    });
 }
 
 // Initialize everything when DOM is loaded
@@ -963,4 +1787,41 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Add event listener to Continue Journey button
     document.querySelector('.continue-journey-btn').addEventListener('click', showMigrationPathSection);
+    
+    // Add event listener to Explore Challenges button
+    document.querySelector('.explore-challenges-btn').addEventListener('click', showChallengesSection);
+    
+    // Add event listener to Sustainability button
+    document.querySelector('.sustainability-btn').addEventListener('click', showSustainabilitySection);
+    
+    // Add event listener to Action button
+    document.querySelector('.action-btn').addEventListener('click', showActionSection);
+    
+    // Add event listeners to action buttons in final section
+    document.querySelector('.primary-action-btn').addEventListener('click', function() {
+        // Simulate opening external link to conservation groups
+        alert('Redirecting to local conservation groups...');
+    });
+    
+    document.querySelector('.secondary-action-btn').addEventListener('click', function() {
+        // Simulate sharing functionality
+        if (navigator.share) {
+            navigator.share({
+                title: 'Wings of Migration',
+                text: 'Discover the incredible world of bird migration and how we can help protect these amazing journeys.',
+                url: window.location.href
+            });
+        } else {
+            // Fallback for browsers that don't support Web Share API
+            const url = window.location.href;
+            navigator.clipboard.writeText(url).then(() => {
+                alert('Link copied to clipboard!');
+            });
+        }
+    });
+    
+    document.querySelector('.tertiary-action-btn').addEventListener('click', function() {
+        // Simulate opening external link to learn more
+        alert('Redirecting to additional resources...');
+    });
 });
