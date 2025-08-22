@@ -307,6 +307,25 @@ function initScrollIndicator() {
     window.addEventListener('resize', handleScroll);
 }
 
+// Action section scroll indicator - simplified version
+function showActionScrollIndicator() {
+    const actionScrollIndicator = document.querySelector('.action-scroll-indicator');
+    
+    if (!actionScrollIndicator) return;
+    
+    // Show the indicator immediately
+    actionScrollIndicator.style.opacity = '1';
+    actionScrollIndicator.style.visibility = 'visible';
+    actionScrollIndicator.classList.remove('hidden');
+    
+    // Hide it after 2 seconds and never show again
+    setTimeout(() => {
+        actionScrollIndicator.style.opacity = '0';
+        actionScrollIndicator.style.visibility = 'hidden';
+        actionScrollIndicator.classList.add('hidden');
+    }, 2000);
+}
+
 // Migration reasons mapping
 const migrationReasonTitles = {
     predators: 'Avoid Predators',
@@ -3046,17 +3065,6 @@ async function updateMigrationStatsCards() {
         console.error('Element with ID success-rate not found!');
     }
     
-    // Flight duration - calculated from CSV distance and speed data
-    const flightDuration = document.getElementById('flight-duration');
-    console.log('Flight duration element:', flightDuration);
-    if (flightDuration) {
-        const value = `${Math.round(speciesStats.averageFlightDuration)} days`;
-        flightDuration.textContent = value;
-        console.log(`Set flight-duration to: ${value}`);
-    } else {
-        console.error('Element with ID flight-duration not found!');
-    }
-    
     // Energy consumption - calculated from flight duration and bird physiology
     const energyConsumption = document.getElementById('energy-consumption');
     console.log('Energy consumption element:', energyConsumption);
@@ -3066,17 +3074,6 @@ async function updateMigrationStatsCards() {
         console.log(`Set energy-consumption to: ${value}`);
     } else {
         console.error('Element with ID energy-consumption not found!');
-    }
-    
-    // Countries crossed - calculated from origin/destination data
-    const countriesCrossed = document.getElementById('countries-crossed');
-    console.log('Countries crossed element:', countriesCrossed);
-    if (countriesCrossed) {
-        const value = speciesStats.countriesCrossed.toString();
-        countriesCrossed.textContent = value;
-        console.log(`Set countries-crossed to: ${value}`);
-    } else {
-        console.error('Element with ID countries-crossed not found!');
     }
     
     console.log(`Finished updating migration stats for ${selectedBird}`);
@@ -3732,22 +3729,6 @@ Rate</div>
                         <div class="migration-stats-card">
                             <div class="card-inner">
                                 <div class="card-front">
-                                    <div class="migration-stats-number" id="flight-duration" data-target="21" data-suffix=" days">0</div>
-                                    <div class="migration-stats-label">Flight
-Duration</div>
-                                </div>
-                                <div class="card-back">
-                                    <div class="card-back-content">
-                                        <h4>Journey Length</h4>
-                                        <p>Migration duration varies dramatically by species and distance. Some birds complete their journey in days, while others take months, stopping frequently to rest and refuel along ancient flyways.</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="migration-stats-card">
-                            <div class="card-inner">
-                                <div class="card-front">
                                     <div class="migration-stats-number" id="energy-consumption" data-target="35" data-suffix="%">0</div>
                                     <div class="migration-stats-label">Body Weight
 Lost</div>
@@ -3756,22 +3737,6 @@ Lost</div>
                                     <div class="card-back-content">
                                         <h4>Energy Cost</h4>
                                         <p>Migration demands enormous energy reserves. Birds lose significant body weight during flight, burning fat and muscle tissue. Some species double their weight before departure to survive the journey.</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="migration-stats-card">
-                            <div class="card-inner">
-                                <div class="card-front">
-                                    <div class="migration-stats-number" id="countries-crossed" data-target="12">0</div>
-                                    <div class="migration-stats-label">Countries
-Crossed</div>
-                                </div>
-                                <div class="card-back">
-                                    <div class="card-back-content">
-                                        <h4>International Journey</h4>
-                                        <p>Bird migration connects continents and countries, crossing political boundaries that birds don't recognize. International cooperation is essential for protecting these global travelers and their habitats.</p>
                                     </div>
                                 </div>
                             </div>
@@ -3941,6 +3906,11 @@ Crossed</div>
 
         <!-- Action Section -->
         <div class="action-section">
+            <div class="action-scroll-indicator">
+                <div class="mouse-icon"></div>
+                <div class="scroll-text">Scroll Down</div>
+            </div>
+            
             <h1 class="action-title">How We Can Help</h1>
             <p class="action-subtitle">Every action matters. Together, we can protect these incredible journeys for future generations.</p>
             
@@ -4055,28 +4025,40 @@ Crossed</div>
                 
                 <div class="impact-potential">
                     <h3>Your Impact Potential</h3>
-                    <div class="impact-calculator">
-                        <div class="calculator-item">
-                            <div class="calculator-icon">🏠</div>
-                            <div class="calculator-content">
+                    <div class="impact-grid-1x3">
+                        <div class="action-card" data-action="bird-friendly-garden">
+                            <div class="action-card-image">
+                                <img src="./images/how-can-we-help/Bird-Friendly Garden.png" alt="Bird-Friendly Garden">
+                            </div>
+                            <div class="action-card-content">
                                 <h4>Bird-Friendly Garden</h4>
-                                <p>Can support <strong>50+ species</strong> during migration seasons</p>
+                                <div class="action-card-overlay">
+                                    <p>Can support <strong>50+ species</strong> during migration seasons with native plants and clean water sources.</p>
+                                </div>
                             </div>
                         </div>
                         
-                        <div class="calculator-item">
-                            <div class="calculator-icon">💡</div>
-                            <div class="calculator-content">
+                        <div class="action-card" data-action="lights-out-initiative">
+                            <div class="action-card-image">
+                                <img src="./images/how-can-we-help/Lights Out Initiative.png" alt="Lights Out Initiative">
+                            </div>
+                            <div class="action-card-content">
                                 <h4>Lights Out Initiative</h4>
-                                <p>Can save <strong>1,000+ birds</strong> per building per year</p>
+                                <div class="action-card-overlay">
+                                    <p>Can save <strong>1,000+ birds</strong> per building per year by reducing light pollution during migration.</p>
+                                </div>
                             </div>
                         </div>
                         
-                        <div class="calculator-item">
-                            <div class="calculator-icon">🌍</div>
-                            <div class="calculator-content">
+                        <div class="action-card" data-action="community-action">
+                            <div class="action-card-image">
+                                <img src="./images/how-can-we-help/Community Action.png" alt="Community Action">
+                            </div>
+                            <div class="action-card-content">
                                 <h4>Community Action</h4>
-                                <p>Can protect <strong>entire migration corridors</strong> spanning continents</p>
+                                <div class="action-card-overlay">
+                                    <p>Can protect <strong>entire migration corridors</strong> spanning continents through collective conservation efforts.</p>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -4089,6 +4071,60 @@ Crossed</div>
                     <div class="action-buttons">
                         <button class="primary-action-btn">Find Local Conservation Groups</button>
                         <button class="secondary-action-btn">Share This Story</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer Section -->
+        <div class="footer-section">
+            <div class="footer-separator"></div>
+            <h2 class="footer-title">Thank You for Your Journey</h2>
+            <p class="footer-message">
+                Thank you for exploring the incredible world of bird migration with us. Through this interactive journey, you've discovered the remarkable challenges these winged travelers face and the vital role they play in our ecosystem's balance. The knowledge you've gained here has the power to make a real difference in protecting these amazing journeys for future generations.
+                <br><br>
+                Every small action you take—from creating bird-friendly spaces to supporting conservation efforts—contributes to a global movement that transcends borders, just like the birds themselves. Together, we can ensure that the ancient pathways in the sky remain open for countless generations to come.
+            </p>
+            <div class="author-section">
+                <img src="./images/Author.jpg" alt="Aakash Redu" class="author-image">
+                <div class="author-info">
+                    <p class="author-name">Aakash Redu</p>
+                    <p class="author-role">(Story Board and Visualization)</p>
+                </div>
+            </div>
+            
+            <div class="footer-separator"></div>
+            
+            <div class="tools-section">
+                <h3 class="tools-title">Tools & Technologies Used</h3>
+                <div class="tools-grid">
+                    <div class="tool-item" data-tool="HTML">
+                        <img src="./images/tools/html.png" alt="HTML" class="tool-image">
+                        <div class="tool-tooltip">HTML</div>
+                    </div>
+                    <div class="tool-item" data-tool="CSS">
+                        <img src="./images/tools/css.png" alt="CSS" class="tool-image">
+                        <div class="tool-tooltip">CSS</div>
+                    </div>
+                    <div class="tool-item" data-tool="JavaScript">
+                        <img src="./images/tools/javascript.png" alt="JavaScript" class="tool-image">
+                        <div class="tool-tooltip">JavaScript</div>
+                    </div>
+                    <div class="tool-item" data-tool="React">
+                        <img src="./images/tools/react.png" alt="React" class="tool-image">
+                        <div class="tool-tooltip">React</div>
+                    </div>
+                    <div class="tool-item" data-tool="ChatGPT">
+                        <img src="./images/tools/chatgpt.png" alt="ChatGPT" class="tool-image">
+                        <div class="tool-tooltip">ChatGPT</div>
+                    </div>
+                    <div class="tool-item" data-tool="Cline">
+                        <img src="./images/tools/cline.png" alt="Cline" class="tool-image">
+                        <div class="tool-tooltip">Cline</div>
+                    </div>
+                    <div class="tool-item" data-tool="GitHub">
+                        <img src="./images/tools/github.png" alt="GitHub" class="tool-image">
+                        <div class="tool-tooltip">GitHub</div>
                     </div>
                 </div>
             </div>
@@ -4339,7 +4375,7 @@ function updateWeatherEducation(weather) {
             
             // Determine if stat is positive or negative for color coding
             const isPositiveStat = isStatPositive(label, value);
-            const statColor = isPositiveStat ? 'rgba(76, 175, 80, 0.3)' : 'rgba(244, 67, 54, 0.3)'; // Warm green/red with transparency
+            const statColor = isPositiveStat ? 'rgba(46, 125, 50, 0.4)' : 'rgba(183, 28, 28, 0.4)'; // Darker green/red with transparency
             
             statItem.innerHTML = `
                 <span class="weather-stat-label">${label}</span>
@@ -4824,7 +4860,13 @@ document.addEventListener('DOMContentLoaded', function() {
     // since the button is created dynamically when the weather wheel is initialized
     
     // Add event listener to Action button
-    document.querySelector('.action-btn').addEventListener('click', showActionSection);
+    document.querySelector('.action-btn').addEventListener('click', function() {
+        showActionSection();
+        // Show the scroll indicator after a short delay to ensure section is visible
+        setTimeout(() => {
+            showActionScrollIndicator();
+        }, 500);
+    });
     
     // Add event listeners to globe filter buttons
     document.querySelectorAll('.filter-btn').forEach(button => {
@@ -4877,8 +4919,8 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Add event listeners to action buttons in final section
     document.querySelector('.primary-action-btn').addEventListener('click', function() {
-        // Simulate opening external link to conservation groups
-        alert('Redirecting to local conservation groups...');
+        // Open conservation groups link in new tab
+        window.open('https://wa.audubon.org/about-us/find-chapter', '_blank', 'noopener,noreferrer');
     });
     
     document.querySelector('.secondary-action-btn').addEventListener('click', function() {
