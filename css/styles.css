@@ -1316,7 +1316,7 @@ html, body {
     text-align: right;
 }
 
-/* Migration Statistics Cards Styles */
+/* Migration Statistics Cards */
 .migration-stats-section {
     flex: 1;
     display: flex;
@@ -1437,7 +1437,6 @@ html, body {
     hyphens: auto;
 }
 
-/* Hover effect enhancements */
 .migration-stats-card::before {
     content: '';
     position: absolute;
@@ -1544,7 +1543,7 @@ html, body {
     }
 }
 
-/* Migration Journey Timeline Styles */
+/* Migration Journey Timeline */
 .timeline-container {
     width: 100%;
     height: 100%;
@@ -1735,7 +1734,7 @@ html, body {
     }
 }
 
-/* New Sections Visibility Control */
+/* New Sections */
 .challenges-section {
     min-height: 100vh;
     display: none;
@@ -1793,7 +1792,7 @@ html, body {
     line-height: 1.4;
 }
 
-/* Weather Challenges Section Styles */
+/* Weather Challenges Section */
 .challenges-content {
     max-width: min(95vw, 1400px);
     width: 100%;
@@ -1889,7 +1888,6 @@ html, body {
     margin-bottom: clamp(2rem, 4vh, 3rem);
 }
 
-/* Weather Wheel Circle - Now holds the weather image background */
 .weather-wheel {
     position: absolute;
     top: 50%;
@@ -1923,9 +1921,6 @@ html, body {
     transition: all 0.5s ease;
 }
 
-/* Removed .weather-wheel-bird - the smaller inner circle is no longer needed */
-
-/* Weather Items positioned around the wheel */
 .weather-item {
     position: absolute;
     top: 50%;
@@ -1945,28 +1940,26 @@ html, body {
     transform-origin: 50% 50%;
 }
 
-/* Position weather items in circular orbit */
-.weather-item:nth-child(2) { /* Clear - top (2nd child after .weather-wheel) */
+.weather-item:nth-child(2) {
     animation: orbitFromTop 20s linear infinite;
 }
 
-.weather-item:nth-child(3) { /* Windy - position 2 (72° spacing) */
+.weather-item:nth-child(3) {
     animation: orbitFromPosition2 20s linear infinite;
 }
 
-.weather-item:nth-child(4) { /* Rainy - position 3 (144° spacing) */
+.weather-item:nth-child(4) {
     animation: orbitFromPosition3 20s linear infinite;
 }
 
-.weather-item:nth-child(5) { /* Storm - position 4 (216° spacing) */
+.weather-item:nth-child(5) {
     animation: orbitFromPosition4 20s linear infinite;
 }
 
-.weather-item:nth-child(6) { /* Foggy - position 5 (288° spacing) */
+.weather-item:nth-child(6) {
     animation: orbitFromPosition5 20s linear infinite;
 }
 
-/* Perfect 72° equal spacing for 5 weather items (360° ÷ 5 = 72°) - Precisely positioned */
 @keyframes orbitFromTop {
     from { 
         transform: translate(-50%, -50%) rotate(-90deg) translateY(clamp(-200px, -25vw, -250px)) rotate(90deg);
@@ -2114,7 +2107,7 @@ html, body {
 }
 
 
-/* Responsive adjustments */
+/* Responsive Adjustments */
 @media (max-width: 768px) {
     .challenges-content {
         flex-direction: column;
@@ -2147,7 +2140,7 @@ html, body {
     }
 }
 
-/* Sustainability Section Styles */
+/* Sustainability Section */
 .sustainability-content {
     max-width: min(95vw, 1400px);
     width: 100%;
@@ -2299,7 +2292,6 @@ html, body {
     text-shadow: 1px 1px 2px rgba(139, 69, 19, 0.3);
 }
 
-/* New 2x2 Grid Layout */
 .action-grid-2x2 {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -2308,7 +2300,6 @@ html, body {
     width: 100%;
 }
 
-/* New 1x3 Grid Layout for Impact Potential */
 .impact-grid-1x3 {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -2328,7 +2319,6 @@ html, body {
     border: 2px solid rgba(255, 255, 255, 0.2);
 }
 
-/* Keep reduced height only for Impact Potential cards */
 .impact-grid-1x3 .action-card {
     aspect-ratio: 1.6;
 }
@@ -2412,7 +2402,7 @@ html, body {
     font-weight: 500;
 }
 
-/* Legacy styles for backward compatibility */
+/* Legacy Action Grid */
 .action-grid {
     display: flex;
     flex-direction: column;
@@ -2616,7 +2606,7 @@ html, body {
 }
 
 
-/* Advanced Chart Animations */
+/* Chart Animations */
 @keyframes segmentPulse {
     0%, 100% {
         opacity: 1;
@@ -2776,7 +2766,6 @@ html, body {
     pointer-events: none;
 }
 
-/* Particle System Enhancements */
 .particle-container {
     pointer-events: none;
 }
@@ -2789,12 +2778,10 @@ html, body {
     animation-delay: 0.6s;
 }
 
-/* Enhanced Gradient Effects */
 .chart-svg defs stop {
     transition: stop-color 0.3s ease;
 }
 
-/* Responsive Chart Adjustments */
 @media (max-width: 768px) {
     .floating-bird {
         font-size: 10px;
@@ -2841,7 +2828,6 @@ html, body {
         font-size: 18px;
     }
     
-    /* Extra small mobile - single column for action cards */
     .action-grid-2x2 {
         grid-template-columns: 1fr;
         gap: 1rem;
@@ -2860,7 +2846,6 @@ html, body {
         font-size: clamp(0.7rem, 3.5vw, 0.85rem);
     }
     
-    /* Mobile-specific layout improvements */
     .content-container,
     .bird-selection-section,
     .journey-section,
@@ -2897,7 +2882,6 @@ html, body {
         height: clamp(42px, 17.5vw, 105px);
     }
     
-    /* Mobile bird selection optimizations */
     .bird-selection-container {
         gap: clamp(1rem, 2vh, 1.5rem);
         transform: none; /* Remove scaling on mobile */
@@ -2952,7 +2936,6 @@ html, body {
         padding: 0.4rem 0.6rem;
     }
     
-    /* Mobile journey section */
     .journey-title,
     .migration-path-title,
     .challenges-title,
@@ -3006,7 +2989,6 @@ html, body {
         padding: 1rem;
     }
     
-    /* Mobile migration path section */
     .migration-path-section {
         height: auto;
         min-height: 100vh;
@@ -3046,7 +3028,6 @@ html, body {
         font-size: clamp(0.7rem, 2.5vw, 0.8rem);
     }
     
-    /* Mobile challenges section */
     .challenges-grid {
         grid-template-columns: 1fr;
         gap: 1.5rem;
@@ -3083,7 +3064,6 @@ html, body {
         font-size: clamp(0.85rem, 3.5vw, 1rem);
     }
     
-    /* Mobile sustainability section */
     .connection-container {
         gap: 2rem;
     }
@@ -3131,7 +3111,6 @@ html, body {
         font-size: clamp(0.85rem, 3.5vw, 1rem);
     }
     
-    /* Mobile action section */
     .action-categories {
         grid-template-columns: 1fr;
         gap: 2rem;
@@ -3204,7 +3183,6 @@ html, body {
         margin-bottom: 2rem;
     }
     
-    /* Mobile button optimizations */
     .action-buttons {
         gap: 1rem;
     }
@@ -3223,7 +3201,7 @@ html, body {
         max-width: 300px;
     }
     
-/* Migration Phases Styles */
+/* Migration Phases */
 .migration-phases {
     display: flex;
     flex-direction: column;
@@ -3540,7 +3518,6 @@ html, body {
     border-color: rgba(255, 255, 255, 0.3);
 }
 
-/* Phase-specific colors and enhancements */
 .preparation-phase .phase-dot {
     background: linear-gradient(135deg, #90EE90, #87CEEB);
 }
@@ -3581,7 +3558,7 @@ html, body {
     box-shadow: 0 0 clamp(15px, 3vh, 20px) rgba(221, 160, 221, 0.6);
 }
 
-/* Energy Tracker Styles */
+/* Energy Tracker */
 .energy-tracker {
     margin-top: 1rem;
     padding-top: 1.5rem;
@@ -3666,7 +3643,6 @@ html, body {
     width: 100%;
 }
 
-/* Mobile timeline optimizations */
 .timeline-container {
     padding: 1rem;
 }
@@ -3700,7 +3676,6 @@ html, body {
         font-size: clamp(0.6rem, 2.5vw, 0.7rem);
     }
     
-    /* Mobile-specific touch improvements */
     .bird-card-small,
     .chart-segment,
     .action-item,
@@ -3712,7 +3687,6 @@ html, body {
         tap-highlight-color: rgba(70, 130, 180, 0.2);
     }
     
-    /* Improve touch target sizes */
     .begin-journey-btn,
     .continue-journey-btn,
     .sustainability-btn,
@@ -3725,12 +3699,10 @@ html, body {
         touch-action: manipulation;
     }
     
-    /* Prevent horizontal scrolling on mobile */
     body {
         overflow-x: hidden;
     }
     
-    /* Improve readability on small screens */
     .migration-fact h4,
     .migration-info h4,
     .migration-controls h4 {
@@ -3743,7 +3715,6 @@ html, body {
         line-height: 1.5;
     }
     
-    /* Mobile stats optimizations */
     .stat-label,
     .stat-value {
         font-size: clamp(0.75rem, 3vw, 0.85rem);
@@ -3758,7 +3729,7 @@ html, body {
     }
 }
 
-/* Footer Section Styles */
+/* Footer Section */
 .footer-section {
     display: none;
     text-align: center;
@@ -3768,12 +3739,10 @@ html, body {
     margin-right: clamp(2rem, 4vw, 4rem);
 }
 
-/* Show footer only when action section is visible */
 .action-section.visible ~ .footer-section {
     display: block;
 }
 
-/* Gradient line separator */
 .footer-separator {
     width: clamp(200px, 40vw, 400px);
     height: 3px;
@@ -3861,7 +3830,6 @@ html, body {
     opacity: 0.9;
 }
 
-/* Mobile Footer Optimizations */
 @media (max-width: 768px) {
     .footer-section {
         padding: clamp(2rem, 4vh, 3rem) clamp(2rem, 4vw, 3rem);
@@ -3911,7 +3879,7 @@ html, body {
     }
 }
 
-/* Tools & Technologies Section Styles */
+/* Tools & Technologies Section */
 .tools-section {
     margin-top: clamp(2rem, 4vh, 3rem);
     padding-top: clamp(1.5rem, 3vh, 2rem);
@@ -4008,7 +3976,6 @@ html, body {
     transform: translateX(-50%) translateY(-2px);
 }
 
-/* Mobile Tools Section */
 @media (max-width: 768px) {
     .tools-grid {
         gap: clamp(0.8rem, 2vw, 1.2rem);

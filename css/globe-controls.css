@@ -1,4 +1,4 @@
-/* Globe Controls Styles */
+/* Globe Controls */
 .globe-controls {
     position: absolute;
     top: 15px;
@@ -7,7 +7,6 @@
 }
 
 .play-pause-btn {
-    /* Glass morphism effect */
     background: rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 50%;
@@ -75,7 +74,7 @@
     transform: scale(1.1);
 }
 
-/* Responsive adjustments */
+/* Responsive Adjustments */
 @media (max-width: 768px) {
     .globe-controls {
         top: 10px;

@@ -1,4 +1,4 @@
-/* Enhanced Stork Migration Wave Controls */
+/* Wave Controls */
 .wave-controls {
     position: absolute;
     top: 10px;
@@ -163,7 +163,6 @@
     }
 }
 
-/* Enhanced globe styling for stork visualization */
 .stork-globe-enhanced {
     position: relative;
 }
@@ -174,7 +173,6 @@
     text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.8);
 }
 
-/* Wave animation particles */
 .wave-particle {
     position: absolute;
     width: 4px;
@@ -205,7 +203,6 @@
     }
 }
 
-/* Migration corridor styling */
 .migration-corridor {
     stroke: #4682B4;
     stroke-width: 2;
@@ -232,7 +229,6 @@
     filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.8));
 }
 
-/* Individual bird markers */
 .bird-marker {
     fill: #00FF00;
     stroke: #FFFFFF;
@@ -261,7 +257,6 @@
     }
 }
 
-/* Density heat map styling */
 .density-point {
     fill: #4682B4;
     opacity: 0.6;
@@ -283,7 +278,6 @@
     opacity: 0.5;
 }
 
-/* Responsive adjustments for wave controls */
 @media (max-width: 768px) {
     .wave-controls {
         position: static;
@@ -343,7 +337,6 @@
     }
 }
 
-/* Enhanced 3D globe performance optimizations */
 .optimized-rendering {
     image-rendering: optimizeSpeed;
     image-rendering: -moz-crisp-edges;
@@ -353,7 +346,6 @@
     image-rendering: pixelated;
 }
 
-/* Wave controls animation enhancements */
 .wave-controls {
     animation: waveControlsSlideIn 0.6s ease-out;
 }
@@ -369,7 +361,6 @@
     }
 }
 
-/* Advanced migration path animations */
 .migration-path-animated {
     stroke-dasharray: 10 5;
     animation: pathFlow 3s linear infinite;
@@ -381,7 +372,6 @@
     }
 }
 
-/* Season-specific styling */
 .spring-migration {
     stroke: #90EE90;
     filter: drop-shadow(0 0 8px rgba(144, 238, 144, 0.6));
@@ -402,7 +392,6 @@
     filter: drop-shadow(0 0 8px rgba(135, 206, 235, 0.6));
 }
 
-/* Stork Migration Overview Styling */
 .stork-overview-container {
     padding: 20px;
     background: linear-gradient(135deg, 
@@ -475,7 +464,6 @@
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.6);
 }
 
-/* Mobile responsive adjustments for stork overview */
 @media (max-width: 768px) {
     .stork-stats-grid {
         grid-template-columns: repeat(2, 1fr);

@@ -1,6 +1,3 @@
-// Generic Bird Migration Data Processor
-// Processes migration records for any bird species from CSV files
-
 class BirdMigrationProcessor {
     constructor() {
         this.migrationData = [];
@@ -10,7 +7,6 @@ class BirdMigrationProcessor {
         this.currentSpecies = null;
     }
 
-    // Process bird migration data from CSV file based on species
     async processBirdData(species) {
         this.currentSpecies = species;
         console.log(`=== PROCESSING ${species.toUpperCase()} DATA ===`);
@@ -30,7 +26,6 @@ class BirdMigrationProcessor {
             console.log(`Fetched CSV text length: ${csvText.length} characters`);
             console.log(`First 200 characters: ${csvText.substring(0, 200)}`);
             
-            // Parse CSV data
             this.migrationData = this.parseCSV(csvText);
             
             console.log(`Found ${this.migrationData.length} ${species} migration records from CSV`);
@@ -43,13 +38,12 @@ class BirdMigrationProcessor {
                     corridors: [],
                     waves: [],
                     densityMap: new Map(),
-                    rawData: [] // Empty - no synthetic data
+                    rawData: []
                 };
             }
             
             console.log(`✅ USING REAL CSV DATA: ${this.migrationData.length} actual ${species} migration records`);
             
-            // Process the data
             this.createMigrationCorridors();
             this.createMigrationWaves();
             this.calculateDensityMap();
@@ -60,7 +54,7 @@ class BirdMigrationProcessor {
                 corridors: this.migrationCorridors,
                 waves: this.migrationWaves,
                 densityMap: this.densityMap,
-                rawData: this.migrationData // Include raw data for arc visualization
+                rawData: this.migrationData
             };
             
         } catch (error) {
@@ -72,12 +66,11 @@ class BirdMigrationProcessor {
                 corridors: [],
                 waves: [],
                 densityMap: new Map(),
-                rawData: [] // Empty - no synthetic data
+                rawData: []
             };
         }
     }
 
-    // Parse CSV data into structured format
     parseCSV(csvText) {
         console.log(`Starting CSV parsing. Text length: ${csvText.length}`);
         const lines = csvText.trim().split('\n');
@@ -103,22 +96,20 @@ class BirdMigrationProcessor {
         let successCount = 0;
         let errorCount = 0;
         
-        // Process ALL records in the CSV file
         for (let i = 1; i < lines.length; i++) {
             const line = lines[i];
             if (!line.trim()) continue;
             
-            // Parse CSV line with quoted coordinates
             const record = this.parseCSVLine(line);
             if (record) {
                 data.push(record);
                 successCount++;
-                if (i <= 5) { // Only log first 5 successful records to avoid console spam
+                if (i <= 5) {
                     console.log(`✅ Successfully parsed record ${i}:`, record);
                 }
             } else {
                 errorCount++;
-                if (errorCount <= 5) { // Only log first 5 failed records to avoid console spam
+                if (errorCount <= 5) {
                     console.log(`❌ Failed to parse line ${i}: ${line.substring(0, 100)}...`);
                 }
             }
@@ -129,10 +120,8 @@ class BirdMigrationProcessor {
         return data;
     }
 
-    // Parse a single CSV line handling quoted coordinates
     parseCSVLine(line) {
         try {
-            // Enhanced CSV parsing for quoted fields with commas inside
             const parts = [];
             let current = '';
             let inQuotes = false;
@@ -142,7 +131,6 @@ class BirdMigrationProcessor {
                 
                 if (char === '"') {
                     inQuotes = !inQuotes;
-                    // Don't include the quote character in the field value
                 } else if (char === ',' && !inQuotes) {
                     parts.push(current.trim());
                     current = '';
@@ -160,20 +148,17 @@ class BirdMigrationProcessor {
                 return null;
             }
             
-            // Expect exactly 5 columns: Bird_ID, Species, Origin, Destination, Migration_Success
             const [birdId, species, origin, destination, migrationSuccess] = parts;
             
             console.log(`✅ Parsing line with ${parts.length} columns - Migration Success: "${migrationSuccess}"`);
             
             console.log(`Field values - Origin: "${origin}", Destination: "${destination}"`);
             
-            // Parse coordinates from the clean string (quotes already removed)
             const originCoords = origin.split(',').map(s => parseFloat(s.trim()));
             const destCoords = destination.split(',').map(s => parseFloat(s.trim()));
             
             console.log(`Parsed coordinates - Origin: [${originCoords}], Dest: [${destCoords}]`);
             
-            // Validate coordinates
             if (originCoords.length !== 2 || destCoords.length !== 2 || 
                 isNaN(originCoords[0]) || isNaN(originCoords[1]) || 
                 isNaN(destCoords[0]) || isNaN(destCoords[1])) {
@@ -204,37 +189,33 @@ class BirdMigrationProcessor {
         }
     }
 
-    // Get species-specific flight speed
     getSpeciesSpeed(species) {
         const speeds = {
-            crane: 35 + Math.random() * 15,      // 35-50 km/h
-            eagle: 45 + Math.random() * 25,      // 45-70 km/h  
-            goose: 40 + Math.random() * 20,      // 40-60 km/h
-            hawk: 50 + Math.random() * 30,       // 50-80 km/h
-            stork: 35 + Math.random() * 15,      // 35-50 km/h
-            swallow: 25 + Math.random() * 15,    // 25-40 km/h
-            warbler: 20 + Math.random() * 10     // 20-30 km/h
+            crane: 35 + Math.random() * 15,
+            eagle: 45 + Math.random() * 25,
+            goose: 40 + Math.random() * 20,
+            hawk: 50 + Math.random() * 30,
+            stork: 35 + Math.random() * 15,
+            swallow: 25 + Math.random() * 15,
+            warbler: 20 + Math.random() * 10
         };
         return speeds[species] || 35 + Math.random() * 15;
     }
 
-    // Get species-specific flock size
     getSpeciesFlockSize(species) {
         const flockSizes = {
-            crane: Math.floor(Math.random() * 100) + 20,    // 20-120 birds
-            eagle: Math.floor(Math.random() * 10) + 1,      // 1-10 birds (usually solitary)
-            goose: Math.floor(Math.random() * 200) + 50,    // 50-250 birds
-            hawk: Math.floor(Math.random() * 20) + 1,       // 1-20 birds
-            stork: Math.floor(Math.random() * 200) + 50,    // 50-250 birds
-            swallow: Math.floor(Math.random() * 500) + 100, // 100-600 birds
-            warbler: Math.floor(Math.random() * 50) + 10    // 10-60 birds
+            crane: Math.floor(Math.random() * 100) + 20,
+            eagle: Math.floor(Math.random() * 10) + 1,
+            goose: Math.floor(Math.random() * 200) + 50,
+            hawk: Math.floor(Math.random() * 20) + 1,
+            stork: Math.floor(Math.random() * 200) + 50,
+            swallow: Math.floor(Math.random() * 500) + 100,
+            warbler: Math.floor(Math.random() * 50) + 10
         };
         return flockSizes[species] || Math.floor(Math.random() * 100) + 20;
     }
 
-    // Determine migration region based on coordinates
     determineRegion(startLat, startLng, endLat, endLng) {
-        // Simple region classification based on coordinates
         if (startLat > 40 && endLat < 0) return 'Europe-Africa';
         if (startLat > 60 && startLng < 0) return 'Arctic-Temperate';
         if (startLng > 60 && startLng < 140) return 'Asia';
@@ -242,10 +223,9 @@ class BirdMigrationProcessor {
         return 'Other';
     }
 
-    // Create migration corridors by clustering similar routes
     createMigrationCorridors() {
         const corridors = new Map();
-        const clusterRadius = 5; // 5 degree clustering radius
+        const clusterRadius = 5;
         
         this.migrationData.forEach(record => {
             const start = { 
@@ -257,7 +237,6 @@ class BirdMigrationProcessor {
                 lng: record.End_Longitude 
             };
             
-            // Find or create corridor
             const corridorKey = this.getCorridorKey(start, end, clusterRadius);
             
             if (!corridors.has(corridorKey)) {
@@ -283,17 +262,15 @@ class BirdMigrationProcessor {
             }
         });
         
-        // Calculate averages and create final corridor data
         this.migrationCorridors = Array.from(corridors.values()).map(corridor => ({
             ...corridor,
             avgDistance: corridor.avgDistance / corridor.frequency,
             avgDuration: corridor.avgDuration / corridor.frequency,
             seasons: Array.from(corridor.seasons),
-            thickness: Math.min(10, Math.max(1, corridor.frequency / 10)) // Visual thickness
-        })).sort((a, b) => b.frequency - a.frequency); // Sort by frequency
+            thickness: Math.min(10, Math.max(1, corridor.frequency / 10))
+        })).sort((a, b) => b.frequency - a.frequency);
     }
 
-    // Create seasonal migration waves
     createMigrationWaves() {
         const seasonalGroups = {
             spring: ['Mar', 'Apr', 'May'],
@@ -308,7 +285,6 @@ class BirdMigrationProcessor {
             );
             
             if (seasonData.length > 0) {
-                // Group by week for wave animation
                 const waves = this.groupByTimeWaves(seasonData, season);
                 this.migrationWaves.push({
                     season,
@@ -320,9 +296,8 @@ class BirdMigrationProcessor {
         });
     }
 
-    // Group birds into time-based waves for animation
     groupByTimeWaves(seasonData, season) {
-        const waveSize = Math.min(50, Math.max(10, seasonData.length / 8)); // 8 waves per season
+        const waveSize = Math.min(50, Math.max(10, seasonData.length / 8));
         const waves = [];
         
         for (let i = 0; i < seasonData.length; i += waveSize) {
@@ -345,29 +320,25 @@ class BirdMigrationProcessor {
                     flockSize: record.Flock_Size || 1,
                     weather: record.Weather_Condition
                 })),
-                delay: (Math.floor(i / waveSize)) * 2000 // 2 second delay between waves
+                delay: (Math.floor(i / waveSize)) * 2000
             });
         }
         
         return waves;
     }
 
-    // Calculate density heat map
     calculateDensityMap() {
         const gridSize = 2; // 2 degree grid
         
         this.migrationData.forEach(record => {
-            // Add density for start point
             const startKey = `${Math.floor(record.Start_Latitude / gridSize) * gridSize},${Math.floor(record.Start_Longitude / gridSize) * gridSize}`;
             this.densityMap.set(startKey, (this.densityMap.get(startKey) || 0) + 1);
             
-            // Add density for end point
             const endKey = `${Math.floor(record.End_Latitude / gridSize) * gridSize},${Math.floor(record.End_Longitude / gridSize) * gridSize}`;
             this.densityMap.set(endKey, (this.densityMap.get(endKey) || 0) + 1);
         });
     }
 
-    // Helper function to create corridor clustering key
     getCorridorKey(start, end, radius) {
         const clusterStart = {
             lat: Math.floor(start.lat / radius) * radius,
@@ -381,11 +352,9 @@ class BirdMigrationProcessor {
         return `${clusterStart.lat},${clusterStart.lng}-${clusterEnd.lat},${clusterEnd.lng}`;
     }
 
-    // Generate sample bird data if real data isn't available
     generateSampleBirdData(species) {
         console.log(`Generating sample ${species} data...`);
         
-        // Species-specific migration routes
         const speciesRoutes = this.getSpeciesMigrationRoutes(species);
         
         this.migrationData = [];
@@ -395,7 +364,6 @@ class BirdMigrationProcessor {
             const birdsPerRoute = Math.floor(1439 / speciesRoutes.length) + (Math.random() * 50);
             
             for (let i = 0; i < birdsPerRoute; i++) {
-                // Add variation to routes
                 const startLatVar = route.startLat + (Math.random() - 0.5) * 10;
                 const startLngVar = route.startLng + (Math.random() - 0.5) * 15;
                 const endLatVar = route.endLat + (Math.random() - 0.5) * 8;
@@ -413,7 +381,7 @@ class BirdMigrationProcessor {
                     Flight_Distance_km: distance,
                     Flight_Duration_hours: distance / this.getSpeciesSpeed(species),
                     Migration_Start_Month: this.getRandomMonth(),
-                    Migration_Success: Math.random() > 0.28 ? 'Success' : 'Failed', // 72% success rate
+                    Migration_Success: Math.random() > 0.28 ? 'Success' : 'Failed',
                     Weather_Condition: this.getRandomWeather(),
                     Flock_Size: this.getSpeciesFlockSize(species),
                     Region: route.region
@@ -424,7 +392,6 @@ class BirdMigrationProcessor {
         console.log(`Generated ${this.migrationData.length} sample ${species} records`);
     }
 
-    // Get species-specific migration routes
     getSpeciesMigrationRoutes(species) {
         const routes = {
             crane: [
@@ -467,7 +434,6 @@ class BirdMigrationProcessor {
         return routes[species] || routes.stork;
     }
 
-    // Process sample data
     processSampleData() {
         this.createMigrationCorridors();
         this.createMigrationWaves();
@@ -479,13 +445,12 @@ class BirdMigrationProcessor {
             corridors: this.migrationCorridors,
             waves: this.migrationWaves,
             densityMap: this.densityMap,
-            rawData: this.migrationData // Include raw data for arc visualization
+            rawData: this.migrationData
         };
     }
 
-    // Helper functions
     calculateDistance(lat1, lng1, lat2, lng2) {
-        const R = 6371; // Earth's radius in km
+        const R = 6371;
         const dLat = (lat2 - lat1) * Math.PI / 180;
         const dLng = (lng2 - lng1) * Math.PI / 180;
         const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
@@ -505,7 +470,6 @@ class BirdMigrationProcessor {
         return weather[Math.floor(Math.random() * weather.length)];
     }
 
-    // Get statistics for display
     getStatistics() {
         return {
             totalBirds: this.migrationData.length,
@@ -517,5 +481,4 @@ class BirdMigrationProcessor {
     }
 }
 
-// Export for use in main.js
 window.BirdMigrationProcessor = BirdMigrationProcessor;

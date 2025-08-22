@@ -151,12 +151,10 @@ const birdData = {
 let selectedBird = 'stork';
 const allBirds = ['eagle', 'crane', 'goose', 'hawk', 'stork', 'swallow', 'warbler'];
 
-// Function to update selected bird display and grid
 async function updateSelectedBird(birdType) {
     selectedBird = birdType;
     const bird = birdData[birdType];
     
-    // Update selected bird display
     const selectedImage = document.querySelector('.selected-bird-image img');
     selectedImage.src = bird.img;
     selectedImage.alt = bird.name;
@@ -165,7 +163,6 @@ async function updateSelectedBird(birdType) {
     document.querySelector('.bird-description-container h3').textContent = bird.name;
     document.querySelector('.bird-description-container p').textContent = bird.description;
     
-    // Update stats
     const statsContainer = document.querySelector('.bird-stats ul');
     statsContainer.innerHTML = '';
     bird.stats.forEach(stat => {
@@ -175,7 +172,6 @@ async function updateSelectedBird(birdType) {
         statsContainer.appendChild(li);
     });
 
-    // Update grid with birds excluding the selected one
     const availableBirds = allBirds.filter(bird => bird !== selectedBird);
     const birdGrid = document.querySelector('.bird-grid');
     
@@ -191,30 +187,26 @@ async function updateSelectedBird(birdType) {
         </div>
     `).join('');
     
-    // Attach click events to new grid cards
     document.querySelectorAll('.bird-card-small').forEach(card => {
         card.addEventListener('click', () => {
             updateSelectedBird(card.dataset.birdType);
         });
     });
     
-    // Update globe position for the new bird (animate if globe is already initialized)
     if (globeInitialized) {
-        positionGlobeForBird(true); // true = animate the transition
+        positionGlobeForBird(true);
         
-        // Re-initialize bird visualization for the new species
         setTimeout(async () => {
             await initializeBirdVisualization();
-        }, 1500); // Wait for globe animation to complete
+        }, 1500);
     }
     
-    // Update migration statistics for the new bird
     await updateMigrationStatsCards();
     
     console.log(`Updated migration stats for ${birdType}`);
 }
 
-// Typewriter effect
+// UI Animation Functions
 function initTypewriter() {
     const text = 'Embark on an interactive journey exploring the fascinating world of bird migration. Discover the incredible distances traveled, challenges faced, and the wonders of these winged travelers.';
     const subtitle = document.querySelector('.main-subtitle');
@@ -230,7 +222,6 @@ function initTypewriter() {
     type();
 }
 
-// Stats animation
 function animateStats() {
     const targets = [7, 10000, 2800000, 45];
     const labels = ["Species\nTracked", "Birds\nMonitored", "Miles\nTraveled", "Countries\nCrossed"];
@@ -273,7 +264,6 @@ function formatNumber(num, index) {
     }
 }
 
-// Scroll indicator
 function initScrollIndicator() {
     const scrollIndicator = document.querySelector('.scroll-indicator');
     
@@ -281,7 +271,7 @@ function initScrollIndicator() {
     
     function handleScroll() {
         const scrollTop = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
-        const shouldShow = scrollTop < 20; // Reduced threshold for faster fading
+        const shouldShow = scrollTop < 20;
         
         if (shouldShow) {
             scrollIndicator.style.opacity = '1';
@@ -294,31 +284,25 @@ function initScrollIndicator() {
         }
     }
     
-    // Add multiple event listeners for better compatibility
     window.addEventListener('scroll', handleScroll, { passive: true });
     document.addEventListener('scroll', handleScroll, { passive: true });
     document.body.addEventListener('scroll', handleScroll, { passive: true });
     
-    // Initial call
     handleScroll();
     
-    // Also trigger on window load and resize
     window.addEventListener('load', handleScroll);
     window.addEventListener('resize', handleScroll);
 }
 
-// Action section scroll indicator - simplified version
 function showActionScrollIndicator() {
     const actionScrollIndicator = document.querySelector('.action-scroll-indicator');
     
     if (!actionScrollIndicator) return;
     
-    // Show the indicator immediately
     actionScrollIndicator.style.opacity = '1';
     actionScrollIndicator.style.visibility = 'visible';
     actionScrollIndicator.classList.remove('hidden');
     
-    // Hide it after 2 seconds and never show again
     setTimeout(() => {
         actionScrollIndicator.style.opacity = '0';
         actionScrollIndicator.style.visibility = 'hidden';
@@ -326,7 +310,7 @@ function showActionScrollIndicator() {
     }, 2000);
 }
 
-// Migration reasons mapping
+// Migration Chart Configuration
 const migrationReasonTitles = {
     predators: 'Avoid Predators',
     breeding: 'Breeding',
@@ -334,7 +318,6 @@ const migrationReasonTitles = {
     feeding: 'Feeding'
 };
 
-// Chart colors for migration reasons
 const chartColors = {
     predators: '#8B4513', // Main brown
     breeding: '#4682B4', // Main blue  
@@ -342,39 +325,32 @@ const chartColors = {
     feeding: '#DEB887'  // Burlywood
 };
 
-// Function to create SVG path for donut slice
 function createArcPath(centerX, centerY, outerRadius, innerRadius, startAngle, endAngle) {
-    // Convert degrees to radians for calculations
     const startAngleRad = (startAngle - 90) * Math.PI / 180;
     const endAngleRad = (endAngle - 90) * Math.PI / 180;
     
-    // Calculate outer arc points
     const x1 = centerX + outerRadius * Math.cos(startAngleRad);
     const y1 = centerY + outerRadius * Math.sin(startAngleRad);
     const x2 = centerX + outerRadius * Math.cos(endAngleRad);
     const y2 = centerY + outerRadius * Math.sin(endAngleRad);
     
-    // Calculate inner arc points
     const x3 = centerX + innerRadius * Math.cos(endAngleRad);
     const y3 = centerY + innerRadius * Math.sin(endAngleRad);
     const x4 = centerX + innerRadius * Math.cos(startAngleRad);
     const y4 = centerY + innerRadius * Math.sin(startAngleRad);
     
-    // Determine if this is a large arc (>180 degrees)
     const largeArcFlag = (endAngle - startAngle) > 180 ? "1" : "0";
     
-    // Create the path string
     return [
-        "M", x1, y1,                                    // Move to start point on outer arc
-        "A", outerRadius, outerRadius, 0, largeArcFlag, 1, x2, y2,  // Draw outer arc
-        "L", x3, y3,                                    // Line to inner arc
-        "A", innerRadius, innerRadius, 0, largeArcFlag, 0, x4, y4,   // Draw inner arc (reverse direction)
-        "Z"                                             // Close path
+        "M", x1, y1,
+        "A", outerRadius, outerRadius, 0, largeArcFlag, 1, x2, y2,
+        "L", x3, y3,
+        "A", innerRadius, innerRadius, 0, largeArcFlag, 0, x4, y4,
+        "Z"
     ].join(" ");
 }
 
 function polarToCartesian(centerX, centerY, radius, angleInDegrees) {
-    // Match coordinate system with createArcPath function (0° at top, clockwise)
     const angleInRadians = (angleInDegrees - 90) * Math.PI / 180.0;
     return {
         x: centerX + (radius * Math.cos(angleInRadians)),
@@ -382,9 +358,7 @@ function polarToCartesian(centerX, centerY, radius, angleInDegrees) {
     };
 }
 
-// Function to find the highest percentage migration reason
 function getHighestMigrationReason(bird) {
-    // Calculate the highest percentage reason dynamically
     let highestReason = null;
     let highestPercentage = -1;
     
@@ -395,19 +369,16 @@ function getHighestMigrationReason(bird) {
         }
     }
     
-    return highestReason || 'climate'; // Default to climate if something goes wrong
+    return highestReason || 'climate';
 }
 
-// Track currently selected segment for enlargement - separate for each chart
-let currentlySelectedSegment = null; // For individual bird chart
-let currentlySelectedMajorSegment = null; // For major reasons chart
+let currentlySelectedSegment = null;
+let currentlySelectedMajorSegment = null;
 
-// Function to create and update the radial donut chart with advanced visuals
 function updateRadialChart() {
     const bird = birdData[selectedBird];
     const chartSvg = document.querySelector('.chart-svg');
     
-    // Clear existing content
     chartSvg.innerHTML = '';
     
     const centerX = 100;
@@ -417,35 +388,27 @@ function updateRadialChart() {
     const labelRadius = 95;
     let currentAngle = 0;
     
-    // Find the highest percentage migration reason for pre-selection
     const highestReason = getHighestMigrationReason(bird);
     
-    // Set initial selected segment to highest percentage reason only if not already set
-    // Reset when changing birds
     if (!currentlySelectedSegment || !bird.migrationReasons.hasOwnProperty(currentlySelectedSegment)) {
         currentlySelectedSegment = highestReason;
     }
     
-    // Create gradient definitions for each segment
     const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
     chartSvg.appendChild(defs);
     
-    // Create particle system container
     const particleContainer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     particleContainer.classList.add('particle-container');
     chartSvg.appendChild(particleContainer);
     
-    // Create segments container
     const segmentsContainer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     segmentsContainer.classList.add('segments-container');
     chartSvg.appendChild(segmentsContainer);
     
-    // Create center animation container
     const centerContainer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     centerContainer.classList.add('center-container');
     chartSvg.appendChild(centerContainer);
     
-    // Create chart segments with advanced effects
     Object.entries(bird.migrationReasons).forEach(([reason, percentage], index) => {
         const angle = (percentage / 100) * 360;
         const midAngle = currentAngle + (angle / 2);
