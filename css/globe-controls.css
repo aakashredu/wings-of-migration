@@ -1,0 +1,93 @@
+/* Globe Controls Styles */
+.globe-controls {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    z-index: 10;
+}
+
+.play-pause-btn {
+    /* Glass morphism effect */
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: 
+        0 8px 32px rgba(0, 0, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2),
+        0 1px 0 rgba(255, 255, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.play-pause-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+    border-radius: inherit;
+    pointer-events: none;
+}
+
+.play-pause-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 
+        0 12px 40px rgba(0, 0, 0, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.play-pause-btn:active {
+    transform: translateY(0px);
+    box-shadow: 
+        0 4px 16px rgba(0, 0, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.play-icon, .pause-icon {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.9);
+    transition: all 0.2s ease;
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.play-pause-btn:hover .play-icon,
+.play-pause-btn:hover .pause-icon {
+    color: rgba(255, 255, 255, 1);
+    transform: scale(1.1);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .globe-controls {
+        top: 10px;
+        left: 10px;
+    }
+    
+    .play-pause-btn {
+        width: 36px;
+        height: 36px;
+    }
+    
+    .play-icon, .pause-icon {
+        font-size: 12px;
+    }
+}

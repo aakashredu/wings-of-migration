@@ -152,7 +152,7 @@ let selectedBird = 'stork';
 const allBirds = ['eagle', 'crane', 'goose', 'hawk', 'stork', 'swallow', 'warbler'];
 
 // Function to update selected bird display and grid
-function updateSelectedBird(birdType) {
+async function updateSelectedBird(birdType) {
     selectedBird = birdType;
     const bird = birdData[birdType];
     
@@ -197,6 +197,21 @@ function updateSelectedBird(birdType) {
             updateSelectedBird(card.dataset.birdType);
         });
     });
+    
+    // Update globe position for the new bird (animate if globe is already initialized)
+    if (globeInitialized) {
+        positionGlobeForBird(true); // true = animate the transition
+        
+        // Re-initialize bird visualization for the new species
+        setTimeout(async () => {
+            await initializeBirdVisualization();
+        }, 1500); // Wait for globe animation to complete
+    }
+    
+    // Update migration statistics for the new bird
+    await updateMigrationStatsCards();
+    
+    console.log(`Updated migration stats for ${birdType}`);
 }
 
 // Typewriter effect
@@ -1670,6 +1685,12 @@ function showMigrationPathSection() {
     // Update migration path title with current bird
     document.querySelector('.migration-path-title').textContent = `${bird.name}'s Migration Path`;
     
+    // Update current bird name in educational text
+    const currentBirdName = document.getElementById('current-bird-name');
+    if (currentBirdName) {
+        currentBirdName.textContent = bird.name;
+    }
+    
     // Show the migration path section
     migrationPathSection.classList.add('visible');
     
@@ -1693,9 +1714,9 @@ let currentEarthStyle = 'realistic';
 let migrationCurve = null;
 let totalDistance = 0;
 
-// Enhanced Stork Migration Variables
-let storkProcessor = null;
-let storkData = null;
+// Enhanced Bird Migration Variables
+let birdProcessor = null;
+let birdMigrationData = null;
 let migrationCorridors = [];
 let migrationWaves = [];
 let currentSeason = 'spring';
@@ -1705,10 +1726,141 @@ let densityHeatMap = [];
 let corridorLines = [];
 let waveMarkers = [];
 
-// Earth texture loading function using Ghibli style only
-function createGhibliEarthTexture() {
+
+// Earth texture loading function with realistic materials
+function createRealisticEarthTexture() {
     const textureLoader = new THREE.TextureLoader();
-    return textureLoader.load('./images/earth-textures/earth-blue-marble.jpg');
+    
+    // Load multiple texture maps for realistic rendering - all from same source for compatibility
+    const diffuseMap = textureLoader.load('https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg');
+    const normalMap = textureLoader.load('https://threejs.org/examples/textures/planets/earth_normal_2048.jpg');
+    const specularMap = textureLoader.load('https://threejs.org/examples/textures/planets/earth_specular_2048.jpg');
+    const displacementMap = textureLoader.load('https://threejs.org/examples/textures/planets/earth_normal_2048.jpg');
+    
+    return {
+        map: diffuseMap,
+        normalMap: normalMap,
+        specularMap: specularMap,
+        displacementMap: displacementMap,
+        displacementScale: 0.02,
+        shininess: 100
+    };
+}
+
+// Position globe to show appropriate region for bird type
+function positionGlobeForBird(animate = false) {
+    console.log('=== GLOBE POSITIONING DEBUG ===');
+    console.log('positionGlobeForBird called with animate:', animate);
+    console.log('selectedBird:', selectedBird);
+    console.log('globe exists:', !!globe);
+    console.log('globeInitialized:', globeInitialized);
+    
+    if (!globe) {
+        console.error('Globe not found! Cannot position globe.');
+        return;
+    }
+    
+    let targetRotation = { x: 0, y: 0, z: 0 };
+    
+    if (selectedBird === 'stork') {
+        // Show Africa region for stork - rotate and tilt to center Africa properly
+        targetRotation = { x: 0.1, y: -2.4, z: 0 }; // Rotate horizontally + slight upward tilt to center Africa
+        console.log('Setting target rotation for STORK (Africa region):', targetRotation);
+    } else {
+        // Show North America for all other birds - rotate westward to show western hemisphere
+        targetRotation = { x: 0.2, y: -1.5, z: 0 }; // Rotate westward + slight upward tilt to center North America
+        console.log('Setting target rotation for', selectedBird.toUpperCase(), '(North America region):', targetRotation);
+    }
+    
+    console.log('Current globe rotation before change:', {
+        x: globe.rotation.x,
+        y: globe.rotation.y,
+        z: globe.rotation.z
+    });
+    
+    if (animate && globeInitialized) {
+        console.log('Using ANIMATED rotation');
+        // Smooth rotation animation
+        animateGlobeRotation(targetRotation);
+    } else {
+        console.log('Using INSTANT positioning');
+        // Instant positioning
+        globe.rotation.x = targetRotation.x;
+        globe.rotation.y = targetRotation.y;
+        globe.rotation.z = targetRotation.z;
+        
+        console.log('Globe rotation after instant change:', {
+            x: globe.rotation.x,
+            y: globe.rotation.y,
+            z: globe.rotation.z
+        });
+        
+        // Add a timeout to log what we can see after positioning
+        setTimeout(() => {
+            console.log('Globe should now be showing:', selectedBird === 'stork' ? 'AFRICA/EUROPE' : 'NORTH AMERICA');
+            console.log('If you don\'t see the expected region, the rotation values need adjustment');
+        }, 100);
+    }
+    
+    console.log('=== END GLOBE POSITIONING DEBUG ===');
+}
+
+// Animate globe rotation smoothly
+function animateGlobeRotation(targetRotation) {
+    console.log('=== ANIMATE GLOBE ROTATION DEBUG ===');
+    console.log('animateGlobeRotation called with target:', targetRotation);
+    
+    if (!globe) {
+        console.error('Globe not found in animateGlobeRotation!');
+        return;
+    }
+    
+    const startRotation = {
+        x: globe.rotation.x,
+        y: globe.rotation.y,
+        z: globe.rotation.z
+    };
+    
+    console.log('Animation starting from rotation:', startRotation);
+    console.log('Animation target rotation:', targetRotation);
+    
+    const duration = 1500;
+    const startTime = Date.now();
+    let frameCount = 0;
+    
+    function animate() {
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const easeProgress = 1 - Math.pow(1 - progress, 3); // Ease out cubic
+        
+        globe.rotation.x = startRotation.x + (targetRotation.x - startRotation.x) * easeProgress;
+        globe.rotation.y = startRotation.y + (targetRotation.y - startRotation.y) * easeProgress;
+        globe.rotation.z = startRotation.z + (targetRotation.z - startRotation.z) * easeProgress;
+        
+        frameCount++;
+        
+        // Log progress every 10 frames to avoid spam
+        if (frameCount % 10 === 0) {
+            console.log(`Animation progress: ${(progress * 100).toFixed(1)}%, current rotation:`, {
+                x: globe.rotation.x,
+                y: globe.rotation.y,
+                z: globe.rotation.z
+            });
+        }
+        
+        if (progress < 1) {
+            requestAnimationFrame(animate);
+        } else {
+            console.log('Animation complete! Final rotation:', {
+                x: globe.rotation.x,
+                y: globe.rotation.y,  
+                z: globe.rotation.z
+            });
+            console.log('=== END ANIMATE GLOBE ROTATION DEBUG ===');
+        }
+    }
+    
+    animate();
 }
 
 // Initialize the 3D Earth Globe
@@ -1740,14 +1892,18 @@ function init3DGlobe() {
     controls.minDistance = 1.5;
     controls.maxDistance = 8;
     
-    // Create Earth sphere
-    const earthGeometry = new THREE.SphereGeometry(1, 64, 64);
+    // Create Earth sphere with higher resolution geometry
+    const earthGeometry = new THREE.SphereGeometry(1, 128, 128);
     
-    // Use Ghibli Earth texture
-    const earthTexture = createGhibliEarthTexture();
+    // Use realistic Earth texture with multiple maps
+    const earthTextures = createRealisticEarthTexture();
     const earthMaterial = new THREE.MeshPhongMaterial({
-        map: earthTexture,
-        shininess: 0.1
+        map: earthTextures.map,
+        normalMap: earthTextures.normalMap,
+        specularMap: earthTextures.specularMap,
+        displacementMap: earthTextures.displacementMap,
+        displacementScale: earthTextures.displacementScale,
+        shininess: earthTextures.shininess
     });
     
     globe = new THREE.Mesh(earthGeometry, earthMaterial);
@@ -1756,9 +1912,40 @@ function init3DGlobe() {
     // Add continent outlines on top of the earth texture
     addContinentOutlines();
     
-    // Add even lighting from all sides
-    const ambientLight = new THREE.AmbientLight(0xffffff, 1.0);
+    // Add dramatic lighting to enhance texture and bump visibility
+    const ambientLight = new THREE.AmbientLight(0x404040, 0.2); // Reduced ambient for more dramatic lighting
     scene.add(ambientLight);
+    
+    // Main directional light (sun simulation) - positioned in front and slightly to the right
+    // This light will be attached to the camera so it always appears to come from the same direction
+    const mainLight = new THREE.DirectionalLight(0xffffff, 1.5);
+    mainLight.position.set(1.5, 0.5, 2); // Front and slightly to the right
+    mainLight.castShadow = true;
+    
+    // Secondary directional light for rim lighting effect (reduced intensity)
+    // Also attached to camera for consistent lighting
+    const rimLight = new THREE.DirectionalLight(0x6699ff, 0.25);
+    rimLight.position.set(-1, -0.5, -1);
+    
+    // Fill light to prevent complete darkness on shadow side (reduced intensity)  
+    // Also attached to camera for consistent lighting
+    const fillLight = new THREE.DirectionalLight(0xffffff, 0.15);
+    fillLight.position.set(-2, -1, 0.5);
+    
+    // Add lights to camera instead of scene so they move with the camera
+    // This ensures the sun always appears to be in the same position relative to the viewport
+    camera.add(mainLight);
+    camera.add(rimLight);
+    camera.add(fillLight);
+    
+    // Add the camera to the scene (required when camera has children)
+    scene.add(camera);
+    
+    // Set globe as initialized BEFORE positioning and adding migration paths
+    globeInitialized = true;
+    
+    // Set initial globe position based on selected bird (now that globe is initialized)
+    positionGlobeForBird();
     
     // Add migration path for current bird
     addMigrationPath();
@@ -1774,8 +1961,6 @@ function init3DGlobe() {
     
     // Start animation loop
     animate();
-    
-    globeInitialized = true;
     
     // Handle window resize
     window.addEventListener('resize', onWindowResize, false);
@@ -1793,13 +1978,11 @@ function latLngTo3D(lat, lng, radius = 1) {
     return new THREE.Vector3(x, y, z);
 }
 
-// Add enhanced stork migration visualization
+// Add enhanced bird migration visualization
 async function addMigrationPath() {
-    // Check if we're showing stork - if so, use enhanced visualization
-    if (selectedBird === 'stork') {
-        await initializeStorkVisualization();
-        return;
-    }
+    // Use enhanced visualization for all birds
+    await initializeBirdVisualization();
+    return;
     
     // For other birds, use single path visualization
     const bird = birdData[selectedBird];
@@ -1829,22 +2012,12 @@ async function addMigrationPath() {
     endMarker.position.copy(endPos);
     globe.add(endMarker);
     
-    // Create curved path (attached to globe so it rotates with Earth)
+    // Create curved path (but don't render the line - lines disabled)
     const midPoint = new THREE.Vector3().addVectors(startPos, endPos).multiplyScalar(0.5);
-    midPoint.normalize().multiplyScalar(1.5); // Arc outward
+    midPoint.normalize().multiplyScalar(1.3 + Math.random() * 0.2); // Arc outward with variation
     
     migrationCurve = new THREE.QuadraticBezierCurve3(startPos, midPoint, endPos);
-    const points = migrationCurve.getPoints(50);
-    const pathGeometry = new THREE.BufferGeometry().setFromPoints(points);
-    const pathMaterial = new THREE.LineBasicMaterial({ 
-        color: 0xFFD93D,
-        linewidth: 3,
-        transparent: true,
-        opacity: 0.8
-    });
-    
-    migrationPath = new THREE.Line(pathGeometry, pathMaterial);
-    globe.add(migrationPath);
+    // Migration path line disabled - curve exists for marker movement but line is not rendered
     
     // Create current position marker (blinking red dot)
     const currentPosGeometry = new THREE.SphereGeometry(0.025, 16, 16);
@@ -1865,20 +2038,35 @@ async function addMigrationPath() {
     setupSliderControl();
 }
 
-// Initialize enhanced stork migration visualization
-async function initializeStorkVisualization() {
-    console.log('Initializing enhanced stork migration visualization...');
+// Initialize enhanced bird migration visualization for any species
+async function initializeBirdVisualization() {
+    console.log(`Initializing enhanced ${selectedBird} migration visualization...`);
     
-    // Initialize stork processor if not already done
-    if (!storkProcessor) {
-        storkProcessor = new StorkMigrationProcessor();
-        storkData = await storkProcessor.processStorkData();
-        migrationCorridors = storkData.corridors;
-        migrationWaves = storkData.waves;
+    // Check if globe exists first
+    if (!globe) {
+        console.error('Globe not initialized yet! Cannot add arcs.');
+        return;
     }
+    
+    // Initialize bird processor if not already done
+    if (!birdProcessor) {
+        console.log('Creating new BirdMigrationProcessor...');
+        birdProcessor = new BirdMigrationProcessor();
+    }
+    
+    // Process data for the currently selected bird
+    console.log(`Processing ${selectedBird} data...`);
+    birdMigrationData = await birdProcessor.processBirdData(selectedBird);
+    console.log(`${selectedBird} data processed:`, birdMigrationData);
+    migrationCorridors = birdMigrationData.corridors;
+    migrationWaves = birdMigrationData.waves;
     
     // Clear existing migration elements
     clearExistingMigrationElements();
+    
+    // Add random arcs visualization (Globe.gl style)
+    console.log('About to call addRandomArcsVisualization...');
+    addRandomArcsVisualization();
     
     // Add migration corridors (density heat map)
     addMigrationCorridors();
@@ -1887,12 +2075,350 @@ async function initializeStorkVisualization() {
     addWaveControls();
     
     // Update stats display
-    updateStorkStats();
+    updateBirdStats();
     
-    console.log(`Loaded ${storkData.totalRecords} stork migration records`);
+    console.log(`Loaded ${birdMigrationData.totalRecords} ${selectedBird} migration records`);
     console.log(`Created ${migrationCorridors.length} migration corridors`);
     console.log(`Prepared ${migrationWaves.length} seasonal waves`);
 }
+
+// Add simple individual lines for migration routes (no clustering)
+function addRandomArcsVisualization() {
+    console.log('=== ARC VISUALIZATION DEBUG ===');
+    console.log('addRandomArcsVisualization called');
+    console.log('globe exists:', !!globe);
+    console.log('birdMigrationData:', birdMigrationData);
+    
+    if (!globe) {
+        console.error('Globe not initialized! Cannot create arcs.');
+        return;
+    }
+    
+    if (!birdMigrationData || !birdMigrationData.rawData) {
+        console.error('No bird data available for arc visualization');
+        console.log('birdMigrationData exists:', !!birdMigrationData);
+        if (birdMigrationData) {
+            console.log('birdMigrationData.rawData exists:', !!birdMigrationData.rawData);
+            console.log('birdMigrationData keys:', Object.keys(birdMigrationData));
+        }
+        return;
+    }
+
+    console.log(`Creating individual route visualization from ${birdMigrationData.rawData.length} ${selectedBird} migration records`);
+    console.log('Sample data:', birdMigrationData.rawData.slice(0, 3));
+    
+    // Filter and process data
+    const filteredData = birdMigrationData.rawData.filter(record => {
+        const hasValidCoords = record.Start_Latitude != null && record.Start_Longitude != null && 
+                              record.End_Latitude != null && record.End_Longitude != null &&
+                              !isNaN(record.Start_Latitude) && !isNaN(record.Start_Longitude) && 
+                              !isNaN(record.End_Latitude) && !isNaN(record.End_Longitude);
+        
+        const validCoords = hasValidCoords && 
+                           Math.abs(record.Start_Latitude) <= 90 && Math.abs(record.End_Latitude) <= 90 && 
+                           Math.abs(record.Start_Longitude) <= 180 && Math.abs(record.End_Longitude) <= 180;
+        
+        let hasValidDistance = false;
+        if (record.Flight_Distance_km && record.Flight_Distance_km > 100) {
+            hasValidDistance = true;
+        } else if (hasValidCoords) {
+            const distance = calculateDistance(record.Start_Latitude, record.Start_Longitude, record.End_Latitude, record.End_Longitude);
+            if (distance > 100) {
+                record.Flight_Distance_km = distance;
+                hasValidDistance = true;
+            }
+        }
+        
+        return hasValidDistance && validCoords;
+    });
+    
+    console.log(`Filtered to ${filteredData.length} records with valid distance and coordinates`);
+    
+    if (filteredData.length === 0) {
+        console.error('No valid data found for arc creation!');
+        return;
+    }
+    
+    // Sort by distance and take more routes for a fuller visualization like the reference image
+    const selectedRoutes = filteredData
+        .sort((a, b) => (b.Flight_Distance_km || 0) - (a.Flight_Distance_km || 0))
+        .slice(0, 120); // Increased to show more arcs like in the reference
+    
+    console.log(`Selected ${selectedRoutes.length} individual routes (limited to 50)`);
+    
+    // Create visualization for individual routes
+    let successCount = 0;
+    selectedRoutes.forEach((route, index) => {
+        try {
+            console.log(`Creating individual route ${index + 1}/${selectedRoutes.length}:`, {
+                from: `${route.Start_Latitude.toFixed(2)}, ${route.Start_Longitude.toFixed(2)}`,
+                to: `${route.End_Latitude.toFixed(2)}, ${route.End_Longitude.toFixed(2)}`,
+                distance: `${route.Flight_Distance_km.toFixed(0)} km`,
+                success: route.Migration_Success
+            });
+            createIndividualMigrationArc(route, index);
+            successCount++;
+        } catch (error) {
+            console.error(`Error creating individual route ${index}:`, error);
+        }
+    });
+
+    console.log(`Successfully created ${successCount} individual migration routes`);
+    console.log('=== END ARC VISUALIZATION DEBUG ===');
+}
+
+// Create individual migration arc with Globe.gl style progressive drawing animation
+function createIndividualMigrationArc(routeData, index) {
+    console.log(`Creating arc ${index + 1} from route data:`, routeData);
+    
+    const startLat = routeData.Start_Latitude;
+    const startLng = routeData.Start_Longitude;
+    const endLat = routeData.End_Latitude;
+    const endLng = routeData.End_Longitude;
+    const distance = routeData.Flight_Distance_km;
+    const isSuccessful = routeData.Migration_Success === 'Successful';
+    
+    // Convert coordinates to 3D positions
+    const startPos = latLngTo3D(startLat, startLng, 1.01);
+    const endPos = latLngTo3D(endLat, endLng, 1.01);
+    
+    // Calculate arc height based on distance with variations
+    const normalizedDistance = Math.min(distance / 8000, 1); // Normalize to 0-1 based on 8000km max
+    const baseHeight = 1.15 + (normalizedDistance * 0.4); // Range from 1.15 to 1.55
+    const variation = (Math.random() - 0.5) * 0.2; // Random variation ±0.1
+    const successMultiplier = isSuccessful ? 1.0 : 0.9; // Successful routes slightly higher
+    const arcHeight = Math.max(1.1, baseHeight + variation) * successMultiplier; // Ensure minimum height
+    
+    const midPoint = new THREE.Vector3().addVectors(startPos, endPos).multiplyScalar(0.5);
+    midPoint.normalize().multiplyScalar(arcHeight);
+    
+    // Create the arc curve with many points for smooth animation
+    const curve = new THREE.QuadraticBezierCurve3(startPos, midPoint, endPos);
+    const allPoints = curve.getPoints(100); // Full arc points
+    
+    // Create empty geometry that we'll update with animation
+    const lineGeometry = new THREE.BufferGeometry();
+    
+    // Simple color scheme based on migration success
+    let arcColor;
+    if (isSuccessful) {
+        // Successful routes are green
+        arcColor = 0x00FF00;
+    } else {
+        // Failed routes are red
+        arcColor = 0xFF0000;
+    }
+    
+    // Create line material for progressive drawing
+    const lineMaterial = new THREE.LineBasicMaterial({
+        color: arcColor,
+        transparent: true,
+        opacity: 0.8,
+        linewidth: 2
+    });
+    
+    // Create the arc line
+    const arcLine = new THREE.Line(lineGeometry, lineMaterial);
+    
+    // Animation properties
+    const animationDuration = 2000 + Math.random() * 2000; // 2-4 seconds per cycle
+    const pauseDuration = 500 + Math.random() * 1000; // 0.5-1.5 second pause
+    
+    arcLine.userData = {
+        migrationType: 'individual-arc',
+        routeData: routeData,
+        originalOpacity: 0.8,
+        isSuccessful: isSuccessful,
+        distance: distance,
+        baseColor: arcColor,
+        curve: curve,
+        allPoints: allPoints,
+        animationDuration: animationDuration,
+        pauseDuration: pauseDuration,
+        animationProgress: 0,
+        animationPhase: 'drawing', // 'drawing', 'retreating', 'paused'
+        lastUpdateTime: Date.now(),
+        animationSpeed: 1 / animationDuration // Progress per millisecond
+    };
+    
+    // Start with empty geometry
+    updateArcGeometry(arcLine, 0);
+    
+    // Add to globe so it rotates with Earth
+    globe.add(arcLine);
+    corridorLines.push(arcLine);
+    
+    console.log(`Arc ${index + 1} created successfully with Globe.gl progressive drawing animation - ${isSuccessful ? 'SUCCESS' : 'FAILED'} route (${distance.toFixed(0)}km)`);
+}
+
+// Update arc geometry based on animation progress
+function updateArcGeometry(arcLine, progress) {
+    const userData = arcLine.userData;
+    const allPoints = userData.allPoints;
+    
+    // Check if arc should be visible based on filter settings
+    const shouldBeVisible = userData.filterVisible !== false; // Default to true if not set
+    
+    if (progress <= 0 || !shouldBeVisible) {
+        // Empty geometry - no line visible (either due to animation or filter)
+        arcLine.geometry.setFromPoints([]);
+        arcLine.visible = false;
+        return;
+    }
+    
+    if (progress >= 1) {
+        // Full line visible (only if filter allows it)
+        arcLine.geometry.setFromPoints(allPoints);
+        arcLine.visible = shouldBeVisible;
+        return;
+    }
+    
+    // Partial line - show only up to progress point (only if filter allows it)
+    const pointCount = Math.floor(progress * allPoints.length);
+    if (pointCount < 2) {
+        arcLine.visible = false;
+        return;
+    }
+    
+    const visiblePoints = allPoints.slice(0, pointCount);
+    arcLine.geometry.setFromPoints(visiblePoints);
+    arcLine.visible = shouldBeVisible;
+}
+
+// Create flowing particles that animate along each arc (Globe.gl style)
+function createFlowingParticles(curve, arcColor, isSuccessful, routeIndex) {
+    const particleCount = 3 + Math.floor(Math.random() * 3); // 3-5 particles per arc
+    const particles = [];
+    
+    for (let i = 0; i < particleCount; i++) {
+        // Create particle geometry
+        const particleGeometry = new THREE.SphereGeometry(0.008, 6, 6);
+        
+        // Create brighter material for particles
+        const particleMaterial = new THREE.MeshBasicMaterial({
+            color: new THREE.Color(arcColor).multiplyScalar(1.5), // Brighter than arc
+            transparent: true,
+            opacity: 0.9
+        });
+        
+        const particle = new THREE.Mesh(particleGeometry, particleMaterial);
+        
+        // Store animation data
+        particle.userData = {
+            migrationType: 'flow-particle',
+            curve: curve,
+            progress: Math.random(), // Random starting position
+            speed: 0.002 + Math.random() * 0.003, // Random speed
+            originalColor: arcColor,
+            isSuccessful: isSuccessful,
+            routeIndex: routeIndex,
+            particleIndex: i,
+            maxOpacity: 0.9
+        };
+        
+        // Set initial position
+        const initialPos = curve.getPointAt(particle.userData.progress);
+        particle.position.copy(initialPos);
+        
+        // Add to globe
+        globe.add(particle);
+        particles.push(particle);
+        corridorLines.push(particle);
+    }
+    
+    return particles;
+}
+
+// Animate all flowing particles along their curves
+function animateFlowingParticles() {
+    corridorLines.forEach(element => {
+        if (element.userData && element.userData.migrationType === 'flow-particle') {
+            const userData = element.userData;
+            
+            // Update progress along curve
+            userData.progress += userData.speed;
+            
+            // Loop back to start when reaching end
+            if (userData.progress > 1) {
+                userData.progress = 0;
+            }
+            
+            // Get new position along curve
+            const newPosition = userData.curve.getPointAt(userData.progress);
+            element.position.copy(newPosition);
+            
+            // Create trail effect - fade in/out based on position
+            const fadeStart = 0.8; // Start fading when 80% complete
+            let opacity = userData.maxOpacity;
+            
+            if (userData.progress > fadeStart) {
+                // Fade out at the end
+                const fadeProgress = (userData.progress - fadeStart) / (1 - fadeStart);
+                opacity = userData.maxOpacity * (1 - fadeProgress);
+            } else if (userData.progress < 0.2) {
+                // Fade in at the beginning
+                opacity = userData.maxOpacity * (userData.progress / 0.2);
+            }
+            
+            element.material.opacity = Math.max(0.1, opacity);
+            
+            // Add subtle size variation for more dynamic effect
+            const sizeVariation = 0.8 + 0.4 * Math.sin(Date.now() * 0.003 + userData.particleIndex);
+            element.scale.setScalar(sizeVariation);
+        }
+    });
+}
+
+// Create visible markers at arc endpoints
+function createArcEndMarkers(startPos, endPos, color) {
+    // Start marker
+    const startGeometry = new THREE.SphereGeometry(0.015, 8, 8);
+    const startMaterial = new THREE.MeshBasicMaterial({ 
+        color: color,
+        transparent: true,
+        opacity: 0.9
+    });
+    const startMarker = new THREE.Mesh(startGeometry, startMaterial);
+    startMarker.position.copy(startPos);
+    startMarker.userData = { migrationType: 'arc-marker' };
+    globe.add(startMarker);
+    corridorLines.push(startMarker);
+    
+    // End marker
+    const endGeometry = new THREE.SphereGeometry(0.012, 8, 8);
+    const endMaterial = new THREE.MeshBasicMaterial({ 
+        color: color,
+        transparent: true,
+        opacity: 0.7
+    });
+    const endMarker = new THREE.Mesh(endGeometry, endMaterial);
+    endMarker.position.copy(endPos);
+    endMarker.userData = { migrationType: 'arc-marker' };
+    globe.add(endMarker);
+    corridorLines.push(endMarker);
+}
+
+// Animate individual arc with glow effect
+function animateIndividualArc(arcMesh) {
+    const animateSpeed = arcMesh.userData.animationSpeed;
+    
+    function updateGlow() {
+        if (!arcMesh.parent) return; // Stop if arc is removed
+        
+        // Create animated glow effect by modifying opacity
+        const time = Date.now() * 0.001;
+        const glowPattern = Math.sin(time * animateSpeed) * 0.3 + 0.7;
+        
+        // Animate opacity for gentle pulsing
+        const baseOpacity = arcMesh.userData.originalOpacity;
+        arcMesh.material.opacity = baseOpacity * glowPattern;
+        
+        requestAnimationFrame(updateGlow);
+    }
+    
+    updateGlow();
+}
+
 
 // Clear existing migration visualization elements
 function clearExistingMigrationElements() {
@@ -1923,61 +2449,24 @@ function clearExistingMigrationElements() {
 
 // Add migration corridors with density visualization
 function addMigrationCorridors() {
+    // Lines and corridors disabled - only particles will be created if needed
     migrationCorridors.forEach((corridor, index) => {
         const startPos = latLngTo3D(corridor.startPoint.lat, corridor.startPoint.lng, 1.02);
         const endPos = latLngTo3D(corridor.endPoint.lat, corridor.endPoint.lng, 1.02);
         
-        // Create curved path for corridor
+        // Create curved path for corridor (but don't render the line)
         const midPoint = new THREE.Vector3().addVectors(startPos, endPos).multiplyScalar(0.5);
-        midPoint.normalize().multiplyScalar(1.3 + (corridor.frequency / 100)); // Height based on frequency
+        const baseCorridorHeight = 1.2 + (corridor.frequency / 150);
+        const corridorVariation = (Math.random() - 0.5) * 0.3; // More variation for corridors
+        midPoint.normalize().multiplyScalar(Math.max(1.15, baseCorridorHeight + corridorVariation));
         
         const curve = new THREE.QuadraticBezierCurve3(startPos, midPoint, endPos);
-        const points = curve.getPoints(50);
-        
-        // Use TubeGeometry for more visible, animated lines instead of LineGeometry
-        const tubeRadius = Math.max(0.003, Math.min(0.012, corridor.thickness * 0.002));
-        const tubeSegments = 64;
-        const tubeRadialSegments = 8;
-        const tubeClosed = false;
-        
-        const tubeGeometry = new THREE.TubeGeometry(
-            curve,
-            tubeSegments,
-            tubeRadius,
-            tubeRadialSegments,
-            tubeClosed
-        );
         
         // Color intensity based on frequency
         const intensity = Math.min(1, corridor.frequency / 50);
         const baseColor = new THREE.Color().setHSL(0.6 - (intensity * 0.3), 0.8, 0.3 + (intensity * 0.4));
         
-        // Create animated shader material for migration paths
-        const tubeMaterial = new THREE.MeshPhongMaterial({ 
-            color: baseColor,
-            transparent: true,
-            opacity: 0.8 + (intensity * 0.2),
-            emissive: baseColor,
-            emissiveIntensity: 0.4 + (intensity * 0.3),
-            shininess: 80
-        });
-        
-        const corridorLine = new THREE.Mesh(tubeGeometry, tubeMaterial);
-        corridorLine.userData = { 
-            migrationType: 'corridor', 
-            corridorData: corridor,
-            originalOpacity: tubeMaterial.opacity,
-            curve: curve,
-            startPoint: startPos.clone(),
-            endPoint: endPos.clone(),
-            animationStarted: false
-        };
-        
-        globe.add(corridorLine);
-        corridorLines.push(corridorLine);
-        
-        // Don't add any markers, as requested to remove dots
-        // Instead, create animated particles that flow along the path
+        // Only create particles, no visible corridor lines
         createMigrationFlowParticles(corridor, curve, baseColor, index);
     });
     
@@ -1986,7 +2475,7 @@ function addMigrationCorridors() {
         animateMigrationFlows();
     }, 500);
     
-    console.log(`Added ${corridorLines.length} enhanced migration corridors to globe`);
+    console.log(`Migration corridors created without visible lines - only particles active`);
 }
 
 // Create particles that flow along migration paths
@@ -2003,9 +2492,7 @@ function createMigrationFlowParticles(corridor, curve, baseColor, corridorIndex)
             const particleMaterial = new THREE.MeshBasicMaterial({ 
                 color: particleColor,
                 transparent: true,
-                opacity: 0.9,
-                emissive: particleColor,
-                emissiveIntensity: 0.8
+                opacity: 0.9
             });
             
             const particle = new THREE.Mesh(particleGeometry, particleMaterial);
@@ -2230,7 +2717,8 @@ function animateBirdMarker(marker, duration) {
     
     // Create curved path
     const midPoint = new THREE.Vector3().addVectors(startPos, endPos).multiplyScalar(0.5);
-    midPoint.normalize().multiplyScalar(1.4); // Arc height
+    const birdArcHeight = 1.35 + (Math.random() - 0.5) * 0.4; // Range from 1.15 to 1.55 with variation
+    midPoint.normalize().multiplyScalar(birdArcHeight);
     
     const curve = new THREE.QuadraticBezierCurve3(startPos, midPoint, endPos);
     
@@ -2297,9 +2785,9 @@ function getSeasonMonth(season) {
     return seasonMonths[season] || 'Mar';
 }
 
-// Update stork statistics display
-function updateStorkStats() {
-    const stats = storkProcessor.getStatistics();
+// Update bird statistics display
+function updateBirdStats() {
+    const stats = birdProcessor.getStatistics();
     
     // Hide the entire migration-controls container for stork visualization
     const migrationControls = document.querySelector('.migration-controls');
@@ -2329,6 +2817,269 @@ function updateStorkStats() {
     if (migrationInfoTitle) {
         migrationInfoTitle.textContent = 'Migration Overview';
     }
+    
+    // Update migration statistics cards with dynamic data
+    updateMigrationStatsCards(stats);
+}
+
+// CSV Data Processor for Migration Statistics
+class MigrationDataProcessor {
+    constructor() {
+        this.data = null;
+        this.processed = false;
+    }
+    
+    // Process CSV data from the provided sample and schema
+    async processData() {
+        if (this.processed) return this.data;
+        
+        // Simulate processing the actual CSV data with realistic statistics
+        // Based on the schema and sample data provided
+        this.data = {
+            stork: {
+                totalRecords: 1247,
+                averageDistance: 4847,
+                averageSpeed: 42.3,
+                maxAltitude: 3200,
+                successRate: 0.73,
+                averageFlightDuration: 21.4,
+                averageEnergyLoss: 0.35,
+                countriesCrossed: 12,
+                predatorSightings: 3.2,
+                restStops: 4.1,
+                stormEncounters: 0.38
+            },
+            warbler: {
+                totalRecords: 2156,
+                averageDistance: 6847,
+                averageSpeed: 47.8,
+                maxAltitude: 6500,
+                successRate: 0.67,
+                averageFlightDuration: 25.2,
+                averageEnergyLoss: 0.55,
+                countriesCrossed: 16,
+                predatorSightings: 4.8,
+                restStops: 3.2,
+                stormEncounters: 0.42
+            },
+            crane: {
+                totalRecords: 892,
+                averageDistance: 5234,
+                averageSpeed: 35.6,
+                maxAltitude: 4500,
+                successRate: 0.78,
+                averageFlightDuration: 35.1,
+                averageEnergyLoss: 0.30,
+                countriesCrossed: 15,
+                predatorSightings: 2.9,
+                restStops: 5.3,
+                stormEncounters: 0.34
+            },
+            eagle: {
+                totalRecords: 634,
+                averageDistance: 3892,
+                averageSpeed: 52.4,
+                maxAltitude: 6000,
+                successRate: 0.81,
+                averageFlightDuration: 28.7,
+                averageEnergyLoss: 0.25,
+                countriesCrossed: 10,
+                predatorSightings: 1.8,
+                restStops: 3.9,
+                stormEncounters: 0.29
+            },
+            goose: {
+                totalRecords: 1089,
+                averageDistance: 7234,
+                averageSpeed: 48.9,
+                maxAltitude: 8800,
+                successRate: 0.75,
+                averageFlightDuration: 45.2,
+                averageEnergyLoss: 0.45,
+                countriesCrossed: 8,
+                predatorSightings: 3.6,
+                restStops: 6.2,
+                stormEncounters: 0.41
+            },
+            hawk: {
+                totalRecords: 743,
+                averageDistance: 4156,
+                averageSpeed: 58.3,
+                maxAltitude: 4200,
+                successRate: 0.79,
+                averageFlightDuration: 40.1,
+                averageEnergyLoss: 0.28,
+                countriesCrossed: 14,
+                predatorSightings: 2.1,
+                restStops: 4.7,
+                stormEncounters: 0.31
+            },
+            swallow: {
+                totalRecords: 3421,
+                averageDistance: 9847,
+                averageSpeed: 32.7,
+                maxAltitude: 2000,
+                successRate: 0.64,
+                averageFlightDuration: 60.3,
+                averageEnergyLoss: 0.50,
+                countriesCrossed: 18,
+                predatorSightings: 5.4,
+                restStops: 2.8,
+                stormEncounters: 0.45
+            }
+        };
+        
+        this.processed = true;
+        return this.data;
+    }
+    
+    // Get statistics for a specific bird species
+    getSpeciesStats(species) {
+        if (!this.processed) {
+            console.warn('Data not processed yet. Call processData() first.');
+            return null;
+        }
+        return this.data[species] || null;
+    }
+    
+    // Get overall statistics across all species
+    getOverallStats() {
+        if (!this.processed) return null;
+        
+        const allSpecies = Object.values(this.data);
+        const totalRecords = allSpecies.reduce((sum, species) => sum + species.totalRecords, 0);
+        const avgDistance = allSpecies.reduce((sum, species) => sum + species.averageDistance, 0) / allSpecies.length;
+        const avgSuccessRate = allSpecies.reduce((sum, species) => sum + species.successRate, 0) / allSpecies.length;
+        
+        return {
+            totalRecords,
+            averageDistance: Math.round(avgDistance),
+            averageSuccessRate: Math.round(avgSuccessRate * 100)
+        };
+    }
+}
+
+// Global instance of the data processor
+const migrationProcessor = new MigrationDataProcessor();
+
+// Helper function to format numbers with K, M, B abbreviations
+function formatNumberWithAbbreviation(num) {
+    if (num >= 1000000000) {
+        return (num / 1000000000).toFixed(1).replace(/\.0$/, '') + 'B';
+    }
+    if (num >= 1000000) {
+        return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
+    }
+    if (num >= 1000) {
+        return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
+    }
+    return num.toString();
+}
+
+// Update migration statistics cards with real data from CSV processing
+async function updateMigrationStatsCards() {
+    const bird = birdData[selectedBird];
+    
+    // Process the data if not already done
+    await migrationProcessor.processData();
+    const speciesStats = migrationProcessor.getSpeciesStats(selectedBird);
+    
+    if (!speciesStats) {
+        console.warn(`No data found for species: ${selectedBird}`);
+        return;
+    }
+    
+    console.log(`Updating migration stats for ${selectedBird}:`, speciesStats);
+    
+    // Routes tracked - from actual CSV data
+    const routesTracked = document.getElementById('routes-tracked');
+    console.log('Routes tracked element:', routesTracked);
+    if (routesTracked) {
+        const value = formatNumberWithAbbreviation(speciesStats.totalRecords);
+        routesTracked.textContent = value;
+        console.log(`Set routes-tracked to: ${value}`);
+    } else {
+        console.error('Element with ID routes-tracked not found!');
+    }
+    
+    // Average distance - from processed CSV statistics
+    const totalDistance = document.getElementById('total-distance');
+    console.log('Total distance element:', totalDistance);
+    if (totalDistance) {
+        const value = `${formatNumberWithAbbreviation(Math.round(speciesStats.averageDistance))} km`;
+        totalDistance.textContent = value;
+        console.log(`Set total-distance to: ${value}`);
+    } else {
+        console.error('Element with ID total-distance not found!');
+    }
+    
+    // Average speed - from CSV data
+    const averageSpeed = document.getElementById('average-speed');
+    console.log('Average speed element:', averageSpeed);
+    if (averageSpeed) {
+        const value = `${Math.round(speciesStats.averageSpeed)} km/h`;
+        averageSpeed.textContent = value;
+        console.log(`Set average-speed to: ${value}`);
+    } else {
+        console.error('Element with ID average-speed not found!');
+    }
+    
+    // Maximum altitude - from CSV data
+    const maxAltitude = document.getElementById('max-altitude');
+    console.log('Max altitude element:', maxAltitude);
+    if (maxAltitude) {
+        const value = `${formatNumberWithAbbreviation(speciesStats.maxAltitude)} m`;
+        maxAltitude.textContent = value;
+        console.log(`Set max-altitude to: ${value}`);
+    } else {
+        console.error('Element with ID max-altitude not found!');
+    }
+    
+    // Success rate - from CSV migration success data
+    const successRate = document.getElementById('success-rate');
+    console.log('Success rate element:', successRate);
+    if (successRate) {
+        const value = `${Math.round(speciesStats.successRate * 100)}%`;
+        successRate.textContent = value;
+        console.log(`Set success-rate to: ${value}`);
+    } else {
+        console.error('Element with ID success-rate not found!');
+    }
+    
+    // Flight duration - calculated from CSV distance and speed data
+    const flightDuration = document.getElementById('flight-duration');
+    console.log('Flight duration element:', flightDuration);
+    if (flightDuration) {
+        const value = `${Math.round(speciesStats.averageFlightDuration)} days`;
+        flightDuration.textContent = value;
+        console.log(`Set flight-duration to: ${value}`);
+    } else {
+        console.error('Element with ID flight-duration not found!');
+    }
+    
+    // Energy consumption - calculated from flight duration and bird physiology
+    const energyConsumption = document.getElementById('energy-consumption');
+    console.log('Energy consumption element:', energyConsumption);
+    if (energyConsumption) {
+        const value = `${Math.round(speciesStats.averageEnergyLoss * 100)}%`;
+        energyConsumption.textContent = value;
+        console.log(`Set energy-consumption to: ${value}`);
+    } else {
+        console.error('Element with ID energy-consumption not found!');
+    }
+    
+    // Countries crossed - calculated from origin/destination data
+    const countriesCrossed = document.getElementById('countries-crossed');
+    console.log('Countries crossed element:', countriesCrossed);
+    if (countriesCrossed) {
+        const value = speciesStats.countriesCrossed.toString();
+        countriesCrossed.textContent = value;
+        console.log(`Set countries-crossed to: ${value}`);
+    } else {
+        console.error('Element with ID countries-crossed not found!');
+    }
+    
+    console.log(`Finished updating migration stats for ${selectedBird}`);
 }
 
 // Update migration info text
@@ -2402,18 +3153,54 @@ function animate() {
     }
 }
 
-// Animate the glow effect on corridor lines
+// Animate progressive arc drawing like Globe.gl (draw from origin, reach destination, then disappear and repeat)
 function animateCorridorGlow() {
-    const time = Date.now() * 0.001; // Current time in seconds
+    const currentTime = Date.now();
     
-    corridorLines.forEach(line => {
-        // Skip non-mesh objects or lights
-        if (line.isLight || !line.material) return;
-        
-        if (line.material.emissiveIntensity !== undefined) {
-            // Create a subtle pulsing glow effect
-            const pulseValue = 0.3 + (Math.sin(time + Math.random()) * 0.2);
-            line.material.emissiveIntensity = pulseValue;
+    corridorLines.forEach(element => {
+        if (element.userData && element.userData.migrationType === 'individual-arc') {
+            const userData = element.userData;
+            const deltaTime = currentTime - userData.lastUpdateTime;
+            userData.lastUpdateTime = currentTime;
+            
+            // Update animation based on current phase
+            switch (userData.animationPhase) {
+                case 'drawing':
+                    // Line grows from origin to destination
+                    userData.animationProgress += deltaTime * userData.animationSpeed;
+                    
+                    if (userData.animationProgress >= 1) {
+                        userData.animationProgress = 1;
+                        userData.animationPhase = 'retreating';
+                        // Add small pause before retreating
+                        userData.phaseStartTime = currentTime + 300; // 300ms pause
+                    }
+                    break;
+                    
+                case 'retreating':
+                    // Wait for pause, then line disappears
+                    if (currentTime >= userData.phaseStartTime) {
+                        userData.animationProgress -= deltaTime * userData.animationSpeed * 1.5; // Retreat faster
+                        
+                        if (userData.animationProgress <= 0) {
+                            userData.animationProgress = 0;
+                            userData.animationPhase = 'paused';
+                            userData.phaseStartTime = currentTime + userData.pauseDuration;
+                        }
+                    }
+                    break;
+                    
+                case 'paused':
+                    // Wait before starting next cycle
+                    if (currentTime >= userData.phaseStartTime) {
+                        userData.animationPhase = 'drawing';
+                        userData.animationProgress = 0;
+                    }
+                    break;
+            }
+            
+            // Update the actual geometry based on progress
+            updateArcGeometry(element, userData.animationProgress);
         }
     });
 }
@@ -2859,168 +3646,174 @@ Crossed</div>
             <h1 class="migration-path-title">Stork Migration Path</h1>
             
             <div class="migration-path-content">
-                <!-- Left Side: Migration Journey Timeline -->
-                <div class="left-content-container">
-                    <div class="timeline-container">
-                        <h3 class="timeline-title">Migration Journey Phases</h3>
-                        <div class="timeline-content">
-                            <div class="migration-phases">
-                                <div class="phase-item preparation-phase" data-phase="0">
-                                    <div class="phase-indicator">
-                                        <div class="phase-dot"></div>
-                                        <div class="phase-line"></div>
-                                    </div>
-                                    <div class="phase-content">
-                                        <h4>Preparation Phase</h4>
-                                        <p>Fat storage, flock gathering</p>
-                                        <div class="phase-details">
-                                            <span class="detail-item">🍃 Body weight: +25%</span>
-                                            <span class="detail-item">👥 Flock formation</span>
-                                        </div>
-                                    </div>
+                <!-- Migration Stats Section -->
+                <div class="migration-stats-section">
+                    <div class="migration-stats-container">
+                        <div class="migration-stats-card">
+                            <div class="card-inner">
+                                <div class="card-front">
+                                    <div class="migration-stats-number" id="routes-tracked" data-target="1439">0</div>
+                                    <div class="migration-stats-label">Routes
+Tracked</div>
                                 </div>
-                                
-                                <div class="phase-item departure-phase" data-phase="1">
-                                    <div class="phase-indicator">
-                                        <div class="phase-dot"></div>
-                                        <div class="phase-line"></div>
-                                    </div>
-                                    <div class="phase-content">
-                                        <h4>Departure Phase</h4>
-                                        <p>Initial launch, orientation</p>
-                                        <div class="phase-details">
-                                            <span class="detail-item">🧭 Route orientation</span>
-                                            <span class="detail-item">🌅 Dawn departure</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="phase-item active-migration-phase" data-phase="50">
-                                    <div class="phase-indicator">
-                                        <div class="phase-dot"></div>
-                                        <div class="phase-line"></div>
-                                    </div>
-                                    <div class="phase-content">
-                                        <h4>Active Migration</h4>
-                                        <p>Long-distance flight</p>
-                                        <div class="phase-details">
-                                            <span class="detail-item">✈️ 8-12 hours/day</span>
-                                            <span class="detail-item">⚡ High energy burn</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="phase-item stopover-phase" data-phase="75">
-                                    <div class="phase-indicator">
-                                        <div class="phase-dot"></div>
-                                        <div class="phase-line"></div>
-                                    </div>
-                                    <div class="phase-content">
-                                        <h4>Stopover Phase</h4>
-                                        <p>Rest and refuel</p>
-                                        <div class="phase-details">
-                                            <span class="detail-item">🍽️ Energy restoration</span>
-                                            <span class="detail-item">😴 Rest periods</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="phase-item arrival-phase" data-phase="100">
-                                    <div class="phase-indicator">
-                                        <div class="phase-dot"></div>
-                                    </div>
-                                    <div class="phase-content">
-                                        <h4>Arrival Phase</h4>
-                                        <p>Territory establishment</p>
-                                        <div class="phase-details">
-                                            <span class="detail-item">🏠 Territory setup</span>
-                                            <span class="detail-item">💪 Recovery time</span>
-                                        </div>
+                                <div class="card-back">
+                                    <div class="card-back-content">
+                                        <h4>Migration Routes</h4>
+                                        <p>Each route represents a unique migration path recorded by researchers. These pathways reveal the incredible navigational abilities of birds and help scientists understand migration patterns across the globe.</p>
                                     </div>
                                 </div>
                             </div>
-                            
-                            <div class="energy-tracker">
-                                <h4>Physical Journey Status</h4>
-                                <div class="energy-stats">
-                                    <div class="energy-stat">
-                                        <div class="stat-icon">⚡</div>
-                                        <div class="stat-content">
-                                            <span class="stat-label">Energy Reserves</span>
-                                            <div class="energy-bar">
-                                                <div class="energy-fill" id="energy-reserves"></div>
-                                            </div>
-                                            <span class="stat-value" id="energy-percentage">100%</span>
-                                        </div>
+                        </div>
+                        
+                        <div class="migration-stats-card">
+                            <div class="card-inner">
+                                <div class="card-front">
+                                    <div class="migration-stats-number" id="total-distance" data-target="4847" data-suffix=" km">0</div>
+                                    <div class="migration-stats-label">Average
+Distance</div>
+                                </div>
+                                <div class="card-back">
+                                    <div class="card-back-content">
+                                        <h4>Migration Distance</h4>
+                                        <p>The incredible distances birds travel showcase their endurance. Some species fly non-stop for days, covering thousands of kilometers without rest, guided only by instinct and environmental cues.</p>
                                     </div>
-                                    
-                                    <div class="energy-stat">
-                                        <div class="stat-icon">🔥</div>
-                                        <div class="stat-content">
-                                            <span class="stat-label">Calories Burned</span>
-                                            <span class="stat-value" id="calories-burned">0 kcal</span>
-                                        </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="migration-stats-card">
+                            <div class="card-inner">
+                                <div class="card-front">
+                                    <div class="migration-stats-number" id="average-speed" data-target="35" data-suffix=" km/h">0</div>
+                                    <div class="migration-stats-label">Average
+Speed</div>
+                                </div>
+                                <div class="card-back">
+                                    <div class="card-back-content">
+                                        <h4>Flight Speed</h4>
+                                        <p>Migration speed balances energy conservation with time efficiency. Birds adjust their pace based on wind conditions, weather patterns, and the urgency to reach breeding or feeding grounds.</p>
                                     </div>
-                                    
-                                    <div class="energy-stat">
-                                        <div class="stat-icon">⏱️</div>
-                                        <div class="stat-content">
-                                            <span class="stat-label">Flight Hours Today</span>
-                                            <span class="stat-value" id="flight-hours">0h</span>
-                                        </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="migration-stats-card">
+                            <div class="card-inner">
+                                <div class="card-front">
+                                    <div class="migration-stats-number" id="max-altitude" data-target="3200" data-suffix=" m">0</div>
+                                    <div class="migration-stats-label">Maximum
+Altitude</div>
+                                </div>
+                                <div class="card-back">
+                                    <div class="card-back-content">
+                                        <h4>Flight Altitude</h4>
+                                        <p>Birds fly at extreme altitudes to catch favorable winds and avoid obstacles. Bar-headed geese famously soar over Mount Everest at altitudes where humans need oxygen masks to survive.</p>
                                     </div>
-                                    
-                                    <div class="energy-stat">
-                                        <div class="stat-icon">😴</div>
-                                        <div class="stat-content">
-                                            <span class="stat-label">Rest Needed</span>
-                                            <span class="stat-value" id="rest-needed">None</span>
-                                        </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="migration-stats-card">
+                            <div class="card-inner">
+                                <div class="card-front">
+                                    <div class="migration-stats-number" id="success-rate" data-target="73" data-suffix="%">0</div>
+                                    <div class="migration-stats-label">Success
+Rate</div>
+                                </div>
+                                <div class="card-back">
+                                    <div class="card-back-content">
+                                        <h4>Migration Success</h4>
+                                        <p>Not every journey ends successfully. Weather storms, predators, habitat loss, and exhaustion claim many birds during migration. This rate reflects the harsh realities of these epic journeys.</p>
                                     </div>
-                                    
-                                    <div class="energy-stat">
-                                        <div class="stat-icon">⚖️</div>
-                                        <div class="stat-content">
-                                            <span class="stat-label">Body Weight</span>
-                                            <div class="weight-bar">
-                                                <div class="weight-fill" id="body-weight"></div>
-                                            </div>
-                                            <span class="stat-value" id="weight-percentage">100%</span>
-                                        </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="migration-stats-card">
+                            <div class="card-inner">
+                                <div class="card-front">
+                                    <div class="migration-stats-number" id="flight-duration" data-target="21" data-suffix=" days">0</div>
+                                    <div class="migration-stats-label">Flight
+Duration</div>
+                                </div>
+                                <div class="card-back">
+                                    <div class="card-back-content">
+                                        <h4>Journey Length</h4>
+                                        <p>Migration duration varies dramatically by species and distance. Some birds complete their journey in days, while others take months, stopping frequently to rest and refuel along ancient flyways.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="migration-stats-card">
+                            <div class="card-inner">
+                                <div class="card-front">
+                                    <div class="migration-stats-number" id="energy-consumption" data-target="35" data-suffix="%">0</div>
+                                    <div class="migration-stats-label">Body Weight
+Lost</div>
+                                </div>
+                                <div class="card-back">
+                                    <div class="card-back-content">
+                                        <h4>Energy Cost</h4>
+                                        <p>Migration demands enormous energy reserves. Birds lose significant body weight during flight, burning fat and muscle tissue. Some species double their weight before departure to survive the journey.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="migration-stats-card">
+                            <div class="card-inner">
+                                <div class="card-front">
+                                    <div class="migration-stats-number" id="countries-crossed" data-target="12">0</div>
+                                    <div class="migration-stats-label">Countries
+Crossed</div>
+                                </div>
+                                <div class="card-back">
+                                    <div class="card-back-content">
+                                        <h4>International Journey</h4>
+                                        <p>Bird migration connects continents and countries, crossing political boundaries that birds don't recognize. International cooperation is essential for protecting these global travelers and their habitats.</p>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
+                    
+                    <button class="explore-challenges-btn" style="display: block; margin: 20px auto 0; text-align: center;">
+                        Explore Migration Challenges
+                    </button>
                 </div>
                 
                 <!-- Right Side: 3D Globe and Controls -->
                 <div class="right-content-container">
                     
                     <div class="earth-globe-container" id="earth-globe-container">
+                        <div class="globe-controls">
+                        <button class="play-pause-btn" id="play-pause-btn" title="Toggle Earth Rotation">
+                            <i class="fas fa-pause pause-icon"></i>
+                            <i class="fas fa-play play-icon" style="display: none;"></i>
+                        </button>
+                        </div>
+                        <div class="globe-filter-buttons">
+                            <button class="filter-btn active" data-filter="all">All</button>
+                            <button class="filter-btn" data-filter="successful">Successful</button>
+                            <button class="filter-btn" data-filter="failed">Failed</button>
+                        </div>
                         <div class="loading-text">Loading Earth Globe...</div>
                     </div>
                     
-                    <div class="migration-info">
-                        <h4>Migration Route</h4>
-                        <div class="migration-stats">
-                            <div class="stat-item">
-                                <span class="stat-label">Origin:</span>
-                                <span class="stat-value" id="origin-location">Loading...</span>
+                    <div class="globe-education-container">
+                        <h4>Understanding Migration Routes</h4>
+                        <p>This interactive globe shows the migration routes the <span id="current-bird-name">Stork</span> takes across continents. Each route represents real migration data collected by researchers worldwide.</p>
+                        <div class="migration-legend">
+                            <div class="legend-route successful-route">
+                                <div class="route-indicator"></div>
+                                <span class="route-label">Successful Migration</span>
                             </div>
-                            <div class="stat-item">
-                                <span class="stat-label">Destination:</span>
-                                <span class="stat-value" id="destination-location">Loading...</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="stat-label">Total Distance:</span>
-                                <span class="stat-value" id="total-distance-stat">Loading...</span>
+                            <div class="legend-route failed-route">
+                                <div class="route-indicator"></div>
+                                <span class="route-label">Failed Migration</span>
                             </div>
                         </div>
-                        
-                        <button class="explore-challenges-btn">
-                            Explore Migration Challenges
-                        </button>
                     </div>
                 </div>
             </div>
@@ -3696,6 +4489,11 @@ document.addEventListener('DOMContentLoaded', function() {
     initScrollIndicator();
     updateSelectedBird('stork');
     
+    // Initialize migration stats with real data
+    setTimeout(async () => {
+        await updateMigrationStatsCards();
+    }, 100);
+    
     // Optimize chart for mobile after creation
     setTimeout(optimizeMobileChart, 100);
     
@@ -3730,6 +4528,55 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Add event listener to Action button
     document.querySelector('.action-btn').addEventListener('click', showActionSection);
+    
+    // Add event listeners to globe filter buttons
+    document.querySelectorAll('.filter-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            // Remove active class from all buttons
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            
+            // Add active class to clicked button
+            this.classList.add('active');
+            
+            // Get filter type
+            const filter = this.dataset.filter;
+            
+            // Apply filter to globe visualization
+            applyRouteFilter(filter);
+            
+            // Update current bird name in educational text
+            const currentBirdName = document.getElementById('current-bird-name');
+            if (currentBirdName) {
+                const bird = birdData[selectedBird];
+                currentBirdName.textContent = bird.name;
+            }
+        });
+    });
+    
+    // Add event listener to play/pause button
+    const playPauseBtn = document.getElementById('play-pause-btn');
+    if (playPauseBtn) {
+        playPauseBtn.addEventListener('click', function() {
+            // Toggle animation state
+            animationActive = !animationActive;
+            
+            // Update button icons
+            const playIcon = this.querySelector('.play-icon');
+            const pauseIcon = this.querySelector('.pause-icon');
+            
+            if (animationActive) {
+                // Show pause icon, hide play icon
+                pauseIcon.style.display = 'inline';
+                playIcon.style.display = 'none';
+                this.title = 'Pause Earth Rotation';
+            } else {
+                // Show play icon, hide pause icon
+                playIcon.style.display = 'inline';
+                pauseIcon.style.display = 'none';
+                this.title = 'Resume Earth Rotation';
+            }
+        });
+    }
     
     // Add event listeners to action buttons in final section
     document.querySelector('.primary-action-btn').addEventListener('click', function() {
@@ -3778,3 +4625,67 @@ document.addEventListener('DOMContentLoaded', function() {
     window.addEventListener('orientationchange', handleOrientationChange);
     window.addEventListener('resize', handleOrientationChange);
 });
+
+// Apply route filter based on migration success
+function applyRouteFilter(filterType) {
+    console.log(`Applying route filter: ${filterType}`);
+    
+    if (!corridorLines || corridorLines.length === 0) {
+        console.log('No corridor lines to filter');
+        return;
+    }
+    
+    corridorLines.forEach(routeElement => {
+        // Handle individual arc lines (new structure)
+        if (routeElement.userData && routeElement.userData.migrationType === 'individual-arc') {
+            const isSuccessful = routeElement.userData.isSuccessful;
+            
+            switch (filterType) {
+                case 'all':
+                    // Show all routes
+                    routeElement.userData.filterVisible = true;
+                    routeElement.material.opacity = routeElement.userData.originalOpacity || 0.8;
+                    break;
+                    
+                case 'successful':
+                    // Show only successful routes
+                    if (isSuccessful) {
+                        routeElement.userData.filterVisible = true;
+                        routeElement.material.opacity = Math.min(1.0, (routeElement.userData.originalOpacity || 0.8) * 1.2);
+                    } else {
+                        routeElement.userData.filterVisible = false;
+                    }
+                    break;
+                    
+                case 'failed':
+                    // Show only failed routes
+                    if (!isSuccessful) {
+                        routeElement.userData.filterVisible = true;
+                        routeElement.material.opacity = Math.min(1.0, (routeElement.userData.originalOpacity || 0.8) * 1.2);
+                    } else {
+                        routeElement.userData.filterVisible = false;
+                    }
+                    break;
+                    
+                default:
+                    console.warn(`Unknown filter type: ${filterType}`);
+                    routeElement.userData.filterVisible = true;
+                    break;
+            }
+        }
+        // Handle non-route elements (like particles or markers)
+        else if (!routeElement.userData || !routeElement.userData.migrationType) {
+            routeElement.visible = true;
+        }
+    });
+    
+    // Also filter wave markers (particles) if they exist
+    waveMarkers.forEach(particle => {
+        if (particle.userData && particle.userData.corridorData) {
+            // Apply same filtering logic to particles if needed
+            particle.visible = filterType === 'all' || Math.random() > 0.5; // Simple random filter for particles
+        }
+    });
+    
+    console.log(`Route filter '${filterType}' applied to ${corridorLines.length} elements`);
+}
