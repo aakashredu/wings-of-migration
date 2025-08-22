@@ -3821,97 +3821,45 @@ Crossed</div>
 
         <!-- Migration Challenges Section -->
         <div class="challenges-section">
-            <h1 class="challenges-title">Migration Challenges</h1>
-            <p class="challenges-subtitle">The journey is perilous. Every migration is a test of survival against nature's harshest elements.</p>
+            <h1 class="challenges-title">Weather Migration Challenges</h1>
+            <p class="challenges-subtitle">Explore how different weather conditions affect bird migration success rates and survival</p>
             
             <div class="challenges-content">
-                <div class="challenges-grid">
-                    <div class="challenge-card weather-card">
-                        <div class="challenge-icon">
-                            <img src="./images/weather/weather-storm.png" alt="Extreme Weather" />
-                        </div>
-                        <h3>Extreme Weather</h3>
-                        <div class="challenge-stats">
-                            <div class="stat-item">
-                                <span class="stat-label">Storm Encounters:</span>
-                                <span class="stat-value" id="storm-encounters">38% of migrations</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="stat-label">High Wind Speeds:</span>
-                                <span class="stat-value" id="wind-speeds">Up to 45 km/h</span>
-                            </div>
-                        </div>
-                        <p class="challenge-description">Birds face devastating storms, extreme temperatures, and unpredictable weather patterns that can force them off course or exhaust their energy reserves.</p>
-                    </div>
+                <!-- Left Side: Weather Education -->
+                <div class="weather-education-container">
+                    <h3 class="weather-education-title">Clear Weather Impact on Migration</h3>
+                    <p class="weather-education-text">
+                        Clear weather provides optimal flying conditions for migrating birds. With good visibility, minimal wind resistance, and stable atmospheric pressure, birds can navigate using celestial cues and maintain efficient flight patterns. Clear skies allow for maximum use of thermal currents and reduce energy expenditure during long-distance flights.
+                    </p>
                     
-                    <div class="challenge-card predator-card">
-                        <div class="challenge-icon">
-                            <img src="./images/migration-reasons/migration-reason-predators.png" alt="Predators" />
+                    <div class="weather-stats-container">
+                        <div class="weather-stat-item">
+                            <span class="weather-stat-label">Visibility Range</span>
+                            <span class="weather-stat-value">15+ km</span>
                         </div>
-                        <h3>Predators & Dangers</h3>
-                        <div class="challenge-stats">
-                            <div class="stat-item">
-                                <span class="stat-label">Predator Sightings:</span>
-                                <span class="stat-value" id="predator-sightings">Average 4 per journey</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="stat-label">Survival Rate:</span>
-                                <span class="stat-value" id="survival-rate">72% complete journey</span>
-                            </div>
+                        <div class="weather-stat-item">
+                            <span class="weather-stat-label">Flight Efficiency</span>
+                            <span class="weather-stat-value">95%</span>
                         </div>
-                        <p class="challenge-description">From aerial predators to ground-based threats at rest stops, migrating birds must constantly remain vigilant while already exhausted from long flights.</p>
-                    </div>
-                    
-                    <div class="challenge-card food-card">
-                        <div class="challenge-icon">
-                            <img src="./images/migration-reasons/migration-reason-feeding.png" alt="Food Scarcity" />
+                        <div class="weather-stat-item">
+                            <span class="weather-stat-label">Navigation Success</span>
+                            <span class="weather-stat-value">92%</span>
                         </div>
-                        <h3>Food & Energy Crisis</h3>
-                        <div class="challenge-stats">
-                            <div class="stat-item">
-                                <span class="stat-label">Low Food Supply:</span>
-                                <span class="stat-value" id="food-supply">45% of stopover sites</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="stat-label">Energy Depletion:</span>
-                                <span class="stat-value" id="energy-loss">Up to 40% body weight</span>
-                            </div>
+                        <div class="weather-stat-item">
+                            <span class="weather-stat-label">Energy Conservation</span>
+                            <span class="weather-stat-value">88%</span>
                         </div>
-                        <p class="challenge-description">Critical stopover sites may lack sufficient food resources, forcing birds to continue flying on empty reserves or face starvation.</p>
-                    </div>
-                    
-                    <div class="challenge-card human-card">
-                        <div class="challenge-icon">
-                            <img src="./images/backgrounds/earth-non-sustainable.png" alt="Human Impact" />
+                        <div class="weather-stat-item">
+                            <span class="weather-stat-label">Success Rate</span>
+                            <span class="weather-stat-value">85%</span>
                         </div>
-                        <h3>Human-Made Obstacles</h3>
-                        <div class="challenge-stats">
-                            <div class="stat-item">
-                                <span class="stat-label">Migration Interrupted:</span>
-                                <span class="stat-value" id="interruption-rate">31% of tracked birds</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="stat-label">Habitat Loss:</span>
-                                <span class="stat-value" id="habitat-loss">25% since 1970</span>
-                            </div>
-                        </div>
-                        <p class="challenge-description">Urban development, light pollution, wind turbines, and habitat destruction create deadly obstacles along ancient migration routes.</p>
                     </div>
                 </div>
                 
-                <div class="challenges-impact">
-                    <div class="impact-visualization">
-                        <h3>Migration Success Rate</h3>
-                        <div class="success-rate-container">
-                            <div class="success-bar">
-                                <div class="success-fill" data-percentage="72"></div>
-                                <span class="success-percentage">72%</span>
-                            </div>
-                            <p class="success-text">Only 72% of migrating birds successfully complete their journey</p>
-                        </div>
-                    </div>
-                    
-                    <button class="sustainability-btn">
+                <!-- Right Side: Weather Wheel -->
+                <div class="weather-wheel-container">
+                    <!-- Weather wheel will be initialized by JavaScript -->
+                    <button class="sustainability-btn" style="margin-top: 2rem;">
                         Discover Sustainability Connection
                     </button>
                 </div>
@@ -4000,36 +3948,52 @@ Crossed</div>
                 <div class="action-categories">
                     <div class="action-category individual">
                         <h3>Individual Actions</h3>
-                        <div class="action-grid">
-                            <div class="action-item">
-                                <div class="action-icon">🏠</div>
-                                <div class="action-text">
+                        <div class="action-grid-2x2">
+                            <div class="action-card" data-action="create-bird-friendly-spaces">
+                                <div class="action-card-image">
+                                    <img src="./images/how-can-we-help/Create Bird-Friendly Spaces.png" alt="Create Bird-Friendly Spaces">
+                                </div>
+                                <div class="action-card-content">
                                     <h4>Create Bird-Friendly Spaces</h4>
-                                    <p>Plant native flowers, provide clean water sources, and create pesticide-free gardens that serve as rest stops.</p>
+                                    <div class="action-card-overlay">
+                                        <p>Plant native flowers, provide clean water sources, and create pesticide-free gardens that serve as rest stops.</p>
+                                    </div>
                                 </div>
                             </div>
                             
-                            <div class="action-item">
-                                <div class="action-icon">💡</div>
-                                <div class="action-text">
+                            <div class="action-card" data-action="reduce-light-pollution">
+                                <div class="action-card-image">
+                                    <img src="./images/how-can-we-help/Reduce Light Pollution.png" alt="Reduce Light Pollution">
+                                </div>
+                                <div class="action-card-content">
                                     <h4>Reduce Light Pollution</h4>
-                                    <p>Turn off unnecessary lights during migration seasons, use warm-colored LEDs, and install motion sensors.</p>
+                                    <div class="action-card-overlay">
+                                        <p>Turn off unnecessary lights during migration seasons, use warm-colored LEDs, and install motion sensors.</p>
+                                    </div>
                                 </div>
                             </div>
                             
-                            <div class="action-item">
-                                <div class="action-icon">🪟</div>
-                                <div class="action-text">
+                            <div class="action-card" data-action="make-windows-visible">
+                                <div class="action-card-image">
+                                    <img src="./images/how-can-we-help/Make Windows Visible.png" alt="Make Windows Visible">
+                                </div>
+                                <div class="action-card-content">
                                     <h4>Make Windows Visible</h4>
-                                    <p>Install decals or screens on windows to prevent bird strikes - responsible for 1 billion bird deaths annually.</p>
+                                    <div class="action-card-overlay">
+                                        <p>Install decals or screens on windows to prevent bird strikes - responsible for 1 billion bird deaths annually.</p>
+                                    </div>
                                 </div>
                             </div>
                             
-                            <div class="action-item">
-                                <div class="action-icon">♻️</div>
-                                <div class="action-text">
+                            <div class="action-card" data-action="reduce-carbon-footprint">
+                                <div class="action-card-image">
+                                    <img src="./images/how-can-we-help/Reduce Carbon Footprint.png" alt="Reduce Carbon Footprint">
+                                </div>
+                                <div class="action-card-content">
                                     <h4>Reduce Carbon Footprint</h4>
-                                    <p>Combat climate change through sustainable transportation, renewable energy, and conscious consumption.</p>
+                                    <div class="action-card-overlay">
+                                        <p>Combat climate change through sustainable transportation, renewable energy, and conscious consumption.</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -4037,36 +4001,52 @@ Crossed</div>
                     
                     <div class="action-category community">
                         <h3>Community Impact</h3>
-                        <div class="action-grid">
-                            <div class="action-item">
-                                <div class="action-icon">🌳</div>
-                                <div class="action-text">
+                        <div class="action-grid-2x2">
+                            <div class="action-card" data-action="habitat-restoration">
+                                <div class="action-card-image">
+                                    <img src="./images/how-can-we-help/Habitat Restoration.png" alt="Habitat Restoration">
+                                </div>
+                                <div class="action-card-content">
                                     <h4>Habitat Restoration</h4>
-                                    <p>Join local conservation groups to restore wetlands, forests, and grasslands along migration routes.</p>
+                                    <div class="action-card-overlay">
+                                        <p>Join local conservation groups to restore wetlands, forests, and grasslands along migration routes.</p>
+                                    </div>
                                 </div>
                             </div>
                             
-                            <div class="action-item">
-                                <div class="action-icon">🏛️</div>
-                                <div class="action-text">
+                            <div class="action-card" data-action="support-policy-change">
+                                <div class="action-card-image">
+                                    <img src="./images/how-can-we-help/Support Policy Change.png" alt="Support Policy Change">
+                                </div>
+                                <div class="action-card-content">
                                     <h4>Support Policy Change</h4>
-                                    <p>Advocate for bird-friendly building codes, dark sky ordinances, and protected migration corridors.</p>
+                                    <div class="action-card-overlay">
+                                        <p>Advocate for bird-friendly building codes, dark sky ordinances, and protected migration corridors.</p>
+                                    </div>
                                 </div>
                             </div>
                             
-                            <div class="action-item">
-                                <div class="action-icon">🔬</div>
-                                <div class="action-text">
+                            <div class="action-card" data-action="citizen-science">
+                                <div class="action-card-image">
+                                    <img src="./images/how-can-we-help/Citizen Science.png" alt="Citizen Science">
+                                </div>
+                                <div class="action-card-content">
                                     <h4>Citizen Science</h4>
-                                    <p>Participate in bird counts, migration tracking, and data collection to help scientists understand patterns.</p>
+                                    <div class="action-card-overlay">
+                                        <p>Participate in bird counts, migration tracking, and data collection to help scientists understand patterns.</p>
+                                    </div>
                                 </div>
                             </div>
                             
-                            <div class="action-item">
-                                <div class="action-icon">💰</div>
-                                <div class="action-text">
+                            <div class="action-card" data-action="fund-conservation">
+                                <div class="action-card-image">
+                                    <img src="./images/how-can-we-help/Fund Conservation.png" alt="Fund Conservation">
+                                </div>
+                                <div class="action-card-content">
                                     <h4>Fund Conservation</h4>
-                                    <p>Support organizations working to protect critical stopover sites and breeding grounds worldwide.</p>
+                                    <div class="action-card-overlay">
+                                        <p>Support organizations working to protect critical stopover sites and breeding grounds worldwide.</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -4109,7 +4089,6 @@ Crossed</div>
                     <div class="action-buttons">
                         <button class="primary-action-btn">Find Local Conservation Groups</button>
                         <button class="secondary-action-btn">Share This Story</button>
-                        <button class="tertiary-action-btn">Learn More</button>
                     </div>
                 </div>
             </div>
@@ -4117,22 +4096,340 @@ Crossed</div>
     `;
 }
 
-// Function to show challenges section
+// Weather data with migration success rates and educational content
+const weatherData = {
+    clear: {
+        name: 'Clear Weather',
+        image: './images/weather/weather-clear_full.png',
+        successRate: 85,
+        educationText: 'Clear weather provides optimal flying conditions for migrating birds. With good visibility, minimal wind resistance, and stable atmospheric pressure, birds can navigate using celestial cues and maintain efficient flight patterns. Clear skies allow for maximum use of thermal currents and reduce energy expenditure during long-distance flights.',
+        stats: {
+            'Visibility Range': '15+ km',
+            'Flight Efficiency': '95%',
+            'Navigation Success': '92%',
+            'Energy Conservation': '88%',
+            'Success Rate': '85%'
+        }
+    },
+    windy: {
+        name: 'Windy Conditions',
+        image: './images/weather/weather-windy-full.png',
+        successRate: 72,
+        educationText: 'Wind conditions can be both helpful and challenging for migrating birds. Tailwinds can significantly speed up migration and reduce energy costs, while headwinds force birds to work harder and may delay their journey. Crosswinds require constant course corrections, increasing energy expenditure and navigation complexity.',
+        stats: {
+            'Tailwind Advantage': '+40% speed',
+            'Headwind Penalty': '-25% speed',
+            'Course Corrections': 'Every 2-3km',
+            'Energy Cost': '+35% in headwinds',
+            'Success Rate': '72%'
+        }
+    },
+    rainy: {
+        name: 'Rainy Weather',
+        image: './images/weather/weather-rainy-full.png',
+        successRate: 58,
+        educationText: 'Rain presents significant challenges for migrating birds. Wet feathers reduce insulation and flight efficiency, while poor visibility makes navigation difficult. Many birds seek shelter during heavy rain, which can delay migration timing and disrupt feeding schedules. Light rain is more manageable than heavy downpours.',
+        stats: {
+            'Flight Efficiency': '-30%',
+            'Visibility': '2-5 km',
+            'Shelter Seeking': '75% of birds',
+            'Delayed Migration': '1-3 days',
+            'Success Rate': '58%'
+        }
+    },
+    storm: {
+        name: 'Storm Conditions',
+        image: './images/weather/weather-storm-full.png',
+        successRate: 32,
+        educationText: 'Severe storms are among the most dangerous weather conditions for migrating birds. Strong winds, heavy precipitation, and lightning create life-threatening situations. Many birds are blown off course, exhausted, or forced to make emergency landings. Storms can devastate entire flocks and significantly impact migration success rates.',
+        stats: {
+            'Wind Speeds': '50+ km/h',
+            'Course Deviation': '20-50 km',
+            'Emergency Landings': '60%',
+            'Flock Separation': '80%',
+            'Success Rate': '32%'
+        }
+    },
+    foggy: {
+        name: 'Foggy Conditions',
+        image: './images/weather/weather-foggy-full.png',
+        successRate: 45,
+        educationText: 'Fog creates navigation challenges through severely reduced visibility. Birds must rely more heavily on magnetic orientation and internal compasses when visual landmarks disappear. While fog doesn\'t pose the direct physical threats of storms, it increases collision risks and can lead to disorientation, especially in unfamiliar areas.',
+        stats: {
+            'Visibility': '<500m',
+            'Collision Risk': '+250%',
+            'Navigation Error': '+45%',
+            'Flight Altitude': 'Reduced by 60%',
+            'Success Rate': '45%'
+        }
+    }
+};
+
+// Currently selected weather condition
+let selectedWeather = 'clear';
+
+// Function to show challenges section with weather wheel
 function showChallengesSection() {
     const challengesSection = document.querySelector('.challenges-section');
+    
     challengesSection.classList.add('visible');
     
-    // Animate the success rate bar
+    // Initialize weather wheel after section is visible
     setTimeout(() => {
-        animateSuccessBar();
+        initializeWeatherWheel();
+        updateWeatherEducation(selectedWeather);
     }, 500);
-    
-    // Update challenge stats with real data from selected bird
-    updateChallengeStats();
     
     challengesSection.scrollIntoView({
         behavior: 'smooth'
     });
+}
+
+// Initialize the weather wheel interface
+function initializeWeatherWheel() {
+    const weatherWheelContainer = document.querySelector('.weather-wheel-container');
+    if (!weatherWheelContainer) {
+        console.error('Weather wheel container not found');
+        return;
+    }
+    
+    // Ensure selectedWeather is set to clear initially
+    selectedWeather = 'clear';
+    
+    // Get clear weather data to ensure consistent image path
+    const clearWeatherData = weatherData['clear'];
+    console.log('Clear weather data:', clearWeatherData);
+    console.log('Clear weather image path:', clearWeatherData.image);
+    
+    // Create the weather wheel HTML structure using weatherData object
+    const wheelHTML = `
+        <div class="weather-wheel-wrapper">
+            <div class="weather-wheel">
+                <div class="weather-wheel-background">
+                    <img src="${clearWeatherData.image}" alt="${clearWeatherData.name}" class="weather-wheel-image" onload="console.log('Clear weather image loaded successfully')" onerror="console.error('Failed to load clear weather image:', this.src)">
+                    <div class="flying-bird-overlay">
+                        <img src="./images/ui/generic-bird-flying-transparent.gif" alt="Flying bird" class="weather-bird-gif">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="weather-item selected" data-weather="clear">
+                <span class="weather-item-text">Clear</span>
+            </div>
+            
+            <div class="weather-item" data-weather="windy">
+                <span class="weather-item-text">Windy</span>
+            </div>
+            
+            <div class="weather-item" data-weather="rainy">
+                <span class="weather-item-text">Rainy</span>
+            </div>
+            
+            <div class="weather-item" data-weather="storm">
+                <span class="weather-item-text">Storm</span>
+            </div>
+            
+            <div class="weather-item" data-weather="foggy">
+                <span class="weather-item-text">Foggy</span>
+            </div>
+        </div>
+        
+        <button class="sustainability-btn" style="margin-top: 2rem;">
+            Discover Sustainability Connection
+        </button>
+    `;
+    
+    weatherWheelContainer.innerHTML = wheelHTML;
+    
+    // Add event listener to the sustainability button AFTER it's created
+    const sustainabilityBtn = document.querySelector('.sustainability-btn');
+    if (sustainabilityBtn) {
+        sustainabilityBtn.addEventListener('click', showSustainabilitySection);
+        console.log('Sustainability button event listener attached');
+    } else {
+        console.error('Sustainability button not found after creation');
+    }
+    
+    // Force initial weather selection to clear after DOM is updated
+    setTimeout(() => {
+        selectWeather('clear');
+        console.log('Forced initial selection to clear weather');
+    }, 100);
+    
+    // Add click event listeners to weather items
+    const weatherItems = document.querySelectorAll('.weather-item');
+    weatherItems.forEach(item => {
+        item.addEventListener('click', function() {
+            const weather = this.dataset.weather;
+            if (weather && weather !== selectedWeather) {
+                selectWeather(weather);
+            }
+        });
+    });
+    
+    // Auto-rotate selection every 8 seconds
+    setInterval(() => {
+        const weatherTypes = Object.keys(weatherData);
+        const currentIndex = weatherTypes.indexOf(selectedWeather);
+        const nextIndex = (currentIndex + 1) % weatherTypes.length;
+        const nextWeather = weatherTypes[nextIndex];
+        selectWeather(nextWeather);
+    }, 8000);
+    
+    console.log('Weather wheel initialized successfully with clear weather');
+}
+
+// Select a weather condition and update the interface
+function selectWeather(weather) {
+    if (!weatherData[weather]) {
+        console.error(`Weather type ${weather} not found`);
+        return;
+    }
+    
+    selectedWeather = weather;
+    
+    // Update weather items selection
+    const weatherItems = document.querySelectorAll('.weather-item');
+    weatherItems.forEach(item => {
+        if (item.dataset.weather === weather) {
+            item.classList.add('selected');
+        } else {
+            item.classList.remove('selected');
+        }
+    });
+    
+    // Update center display - the weather image that fills the entire wheel
+    const wheelImage = document.querySelector('.weather-wheel-image');
+    
+    if (wheelImage) {
+        wheelImage.src = weatherData[weather].image;
+        wheelImage.alt = weatherData[weather].name;
+    }
+    
+    // Update educational content
+    updateWeatherEducation(weather);
+    
+    console.log(`Selected weather: ${weather}`);
+}
+
+// Update the educational content and statistics
+function updateWeatherEducation(weather) {
+    const weatherInfo = weatherData[weather];
+    
+    // Update education text
+    const educationText = document.querySelector('.weather-education-text');
+    if (educationText) {
+        educationText.textContent = weatherInfo.educationText;
+    }
+    
+    // Update statistics
+    const statsContainer = document.querySelector('.weather-stats-container');
+    if (statsContainer) {
+        statsContainer.innerHTML = '';
+        
+        // Create array to ensure Success Rate appears last
+        const statsEntries = Object.entries(weatherInfo.stats);
+        const successRateEntry = statsEntries.find(([label]) => label === 'Success Rate');
+        const otherEntries = statsEntries.filter(([label]) => label !== 'Success Rate');
+        
+        // Process other stats first
+        otherEntries.forEach(([label, value]) => {
+            const statItem = document.createElement('div');
+            statItem.classList.add('weather-stat-item');
+            
+            // Determine if stat is positive or negative for color coding
+            const isPositiveStat = isStatPositive(label, value);
+            const statColor = isPositiveStat ? 'rgba(76, 175, 80, 0.3)' : 'rgba(244, 67, 54, 0.3)'; // Warm green/red with transparency
+            
+            statItem.innerHTML = `
+                <span class="weather-stat-label">${label}</span>
+                <span class="weather-stat-value">${value}</span>
+            `;
+            
+            // Apply background color based on positive/negative
+            statItem.style.background = `linear-gradient(135deg, ${statColor}, rgba(255, 255, 255, 0.1))`;
+            
+            statsContainer.appendChild(statItem);
+        });
+        
+        // Always add Success Rate at the end if it exists
+        if (successRateEntry) {
+            const [label, value] = successRateEntry;
+            const statItem = document.createElement('div');
+            statItem.classList.add('weather-stat-item');
+            
+            // Parse success rate percentage
+            const successPercent = parseInt(value.replace('%', ''));
+            let successColor;
+            
+            // Color coding based on success rate ranges
+            if (successPercent > 70) {
+                successColor = 'rgba(76, 175, 80, 0.4)'; // Warm green
+            } else if (successPercent >= 50) {
+                successColor = 'rgba(255, 152, 0, 0.4)'; // Warm orange
+            } else {
+                successColor = 'rgba(244, 67, 54, 0.4)'; // Warm red
+            }
+            
+            statItem.innerHTML = `
+                <span class="weather-stat-label">${label}</span>
+                <span class="weather-stat-value">${value}</span>
+            `;
+            
+            // Apply success rate color coding
+            statItem.style.background = `linear-gradient(135deg, ${successColor}, rgba(255, 255, 255, 0.1))`;
+            
+            statsContainer.appendChild(statItem);
+        }
+    }
+    
+    // Update the title to reflect current weather
+    const educationTitle = document.querySelector('.weather-education-title');
+    if (educationTitle) {
+        educationTitle.textContent = `${weatherInfo.name} Impact on Migration`;
+    }
+    
+    console.log(`Updated education content for ${weather}`);
+}
+
+// Helper function to determine if a stat is positive or negative
+function isStatPositive(label, value) {
+    const lowerLabel = label.toLowerCase();
+    const lowerValue = value.toLowerCase();
+    
+    // Positive indicators
+    if (lowerLabel.includes('efficiency') || 
+        lowerLabel.includes('success') || 
+        lowerLabel.includes('navigation') ||
+        lowerLabel.includes('conservation') ||
+        lowerLabel.includes('visibility') ||
+        lowerLabel.includes('advantage')) {
+        return true;
+    }
+    
+    // Negative indicators
+    if (lowerLabel.includes('risk') || 
+        lowerLabel.includes('penalty') || 
+        lowerLabel.includes('error') ||
+        lowerLabel.includes('cost') ||
+        lowerLabel.includes('delayed') ||
+        lowerLabel.includes('deviation') ||
+        lowerLabel.includes('emergency') ||
+        lowerLabel.includes('separation')) {
+        return false;
+    }
+    
+    // Check for positive/negative modifiers in the value
+    if (lowerValue.includes('+') || lowerValue.includes('increase')) {
+        return true;
+    }
+    
+    if (lowerValue.includes('-') || lowerValue.includes('decrease') || lowerValue.includes('reduced')) {
+        return false;
+    }
+    
+    // Default to positive for neutral stats
+    return true;
 }
 
 // Function to show sustainability section
@@ -4523,8 +4820,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Add event listener to Explore Challenges button
     document.querySelector('.explore-challenges-btn').addEventListener('click', showChallengesSection);
     
-    // Add event listener to Sustainability button
-    document.querySelector('.sustainability-btn').addEventListener('click', showSustainabilitySection);
+    // Sustainability button event listener is now attached in initializeWeatherWheel() function
+    // since the button is created dynamically when the weather wheel is initialized
     
     // Add event listener to Action button
     document.querySelector('.action-btn').addEventListener('click', showActionSection);
