@@ -1,4 +1,3 @@
-// Bird data
 const birdData = {
     crane: {
         img: './images/birds/crane-flying.png',
@@ -202,8 +201,6 @@ async function updateSelectedBird(birdType) {
     }
     
     await updateMigrationStatsCards();
-    
-    console.log(`Updated migration stats for ${birdType}`);
 }
 
 // UI Animation Functions
@@ -848,13 +845,9 @@ function showJourneySection() {
 
 // Function to show migration patterns section
 function showMigrationPatternsSection() {
-    console.log('showMigrationPatternsSection called'); // Debug log
-    
     const migrationPatternsSection = document.querySelector('.migration-patterns-section');
-    console.log('Migration patterns section found:', migrationPatternsSection); // Debug log
     
     if (!migrationPatternsSection) {
-        console.error('Migration patterns section not found!');
         return;
     }
     
@@ -873,28 +866,24 @@ function showMigrationPatternsSection() {
     // Update the major reasons chart
     try {
         updateMajorReasonsChart();
-        console.log('Major reasons chart updated successfully'); // Debug log
     } catch (error) {
-        console.error('Error updating major reasons chart:', error);
+        // Silent error handling
     }
     
     // Create the horizontal bar chart
     try {
         createHorizontalBarChart();
-        console.log('Horizontal bar chart created successfully'); // Debug log
     } catch (error) {
-        console.error('Error creating horizontal bar chart:', error);
+        // Silent error handling
     }
     
     // Show the migration patterns section
     migrationPatternsSection.classList.add('visible');
-    console.log('Added visible class to migration patterns section'); // Debug log
     
     // Scroll to migration patterns section
     migrationPatternsSection.scrollIntoView({
         behavior: 'smooth'
     });
-    console.log('Scrolled to migration patterns section'); // Debug log
 }
 
 // Function to update the selected bird chart
@@ -1228,19 +1217,14 @@ function getHighestMajorMigrationReason(majorReasons) {
 
 // Function to update the major reasons chart
 function updateMajorReasonsChart() {
-    console.log('updateMajorReasonsChart called'); // Debug log
-    
     const chartSvg = document.querySelector('.major-reasons-svg');
-    console.log('Chart SVG element found:', chartSvg); // Debug log
     
     if (!chartSvg) {
-        console.error('major-reasons-svg element not found!');
         return;
     }
     
     // Clear existing content
     chartSvg.innerHTML = '';
-    console.log('Chart SVG cleared, starting to build chart'); // Debug log
     
     const centerX = 100;
     const centerY = 100;
@@ -1563,14 +1547,15 @@ function createHorizontalBarChart() {
     
     chartContainer.appendChild(barsContainer);
     
-    // Add Explore Migration Path button below the chart
+    rightSection.appendChild(chartContainer);
+    
+    // Add Explore Migration Path button below the chart (appears last)
     const exploreButton = document.createElement('button');
     exploreButton.classList.add('continue-migration-path-btn');
     exploreButton.textContent = 'Explore Migration Path';
     exploreButton.addEventListener('click', showMigrationPathSection);
     
-    chartContainer.appendChild(exploreButton);
-    rightSection.appendChild(chartContainer);
+    rightSection.appendChild(exploreButton);
 }
 
 // Function to expand horizontal bar segments of a specific reason (triggered by donut chart clicks)
@@ -1731,14 +1716,7 @@ function createRealisticEarthTexture() {
 
 // Position globe to show appropriate region for bird type
 function positionGlobeForBird(animate = false) {
-    console.log('=== GLOBE POSITIONING DEBUG ===');
-    console.log('positionGlobeForBird called with animate:', animate);
-    console.log('selectedBird:', selectedBird);
-    console.log('globe exists:', !!globe);
-    console.log('globeInitialized:', globeInitialized);
-    
     if (!globe) {
-        console.error('Globe not found! Cannot position globe.');
         return;
     }
     
@@ -1747,53 +1725,25 @@ function positionGlobeForBird(animate = false) {
     if (selectedBird === 'stork') {
         // Show Africa region for stork - rotate and tilt to center Africa properly
         targetRotation = { x: 0.1, y: -2.4, z: 0 }; // Rotate horizontally + slight upward tilt to center Africa
-        console.log('Setting target rotation for STORK (Africa region):', targetRotation);
     } else {
         // Show North America for all other birds - rotate westward to show western hemisphere
         targetRotation = { x: 0.2, y: -1.5, z: 0 }; // Rotate westward + slight upward tilt to center North America
-        console.log('Setting target rotation for', selectedBird.toUpperCase(), '(North America region):', targetRotation);
     }
     
-    console.log('Current globe rotation before change:', {
-        x: globe.rotation.x,
-        y: globe.rotation.y,
-        z: globe.rotation.z
-    });
-    
     if (animate && globeInitialized) {
-        console.log('Using ANIMATED rotation');
         // Smooth rotation animation
         animateGlobeRotation(targetRotation);
     } else {
-        console.log('Using INSTANT positioning');
         // Instant positioning
         globe.rotation.x = targetRotation.x;
         globe.rotation.y = targetRotation.y;
         globe.rotation.z = targetRotation.z;
-        
-        console.log('Globe rotation after instant change:', {
-            x: globe.rotation.x,
-            y: globe.rotation.y,
-            z: globe.rotation.z
-        });
-        
-        // Add a timeout to log what we can see after positioning
-        setTimeout(() => {
-            console.log('Globe should now be showing:', selectedBird === 'stork' ? 'AFRICA/EUROPE' : 'NORTH AMERICA');
-            console.log('If you don\'t see the expected region, the rotation values need adjustment');
-        }, 100);
     }
-    
-    console.log('=== END GLOBE POSITIONING DEBUG ===');
 }
 
 // Animate globe rotation smoothly
 function animateGlobeRotation(targetRotation) {
-    console.log('=== ANIMATE GLOBE ROTATION DEBUG ===');
-    console.log('animateGlobeRotation called with target:', targetRotation);
-    
     if (!globe) {
-        console.error('Globe not found in animateGlobeRotation!');
         return;
     }
     
@@ -1803,12 +1753,8 @@ function animateGlobeRotation(targetRotation) {
         z: globe.rotation.z
     };
     
-    console.log('Animation starting from rotation:', startRotation);
-    console.log('Animation target rotation:', targetRotation);
-    
     const duration = 1500;
     const startTime = Date.now();
-    let frameCount = 0;
     
     function animate() {
         const elapsed = Date.now() - startTime;
@@ -1819,26 +1765,8 @@ function animateGlobeRotation(targetRotation) {
         globe.rotation.y = startRotation.y + (targetRotation.y - startRotation.y) * easeProgress;
         globe.rotation.z = startRotation.z + (targetRotation.z - startRotation.z) * easeProgress;
         
-        frameCount++;
-        
-        // Log progress every 10 frames to avoid spam
-        if (frameCount % 10 === 0) {
-            console.log(`Animation progress: ${(progress * 100).toFixed(1)}%, current rotation:`, {
-                x: globe.rotation.x,
-                y: globe.rotation.y,
-                z: globe.rotation.z
-            });
-        }
-        
         if (progress < 1) {
             requestAnimationFrame(animate);
-        } else {
-            console.log('Animation complete! Final rotation:', {
-                x: globe.rotation.x,
-                y: globe.rotation.y,  
-                z: globe.rotation.z
-            });
-            console.log('=== END ANIMATE GLOBE ROTATION DEBUG ===');
         }
     }
     
@@ -2971,75 +2899,47 @@ async function updateMigrationStatsCards() {
         return;
     }
     
-    console.log(`Updating migration stats for ${selectedBird}:`, speciesStats);
-    
     // Routes tracked - from actual CSV data
     const routesTracked = document.getElementById('routes-tracked');
-    console.log('Routes tracked element:', routesTracked);
     if (routesTracked) {
         const value = formatNumberWithAbbreviation(speciesStats.totalRecords);
         routesTracked.textContent = value;
-        console.log(`Set routes-tracked to: ${value}`);
-    } else {
-        console.error('Element with ID routes-tracked not found!');
     }
     
     // Average distance - from processed CSV statistics
     const totalDistance = document.getElementById('total-distance');
-    console.log('Total distance element:', totalDistance);
     if (totalDistance) {
         const value = `${formatNumberWithAbbreviation(Math.round(speciesStats.averageDistance))} km`;
         totalDistance.textContent = value;
-        console.log(`Set total-distance to: ${value}`);
-    } else {
-        console.error('Element with ID total-distance not found!');
     }
     
     // Average speed - from CSV data
     const averageSpeed = document.getElementById('average-speed');
-    console.log('Average speed element:', averageSpeed);
     if (averageSpeed) {
         const value = `${Math.round(speciesStats.averageSpeed)} km/h`;
         averageSpeed.textContent = value;
-        console.log(`Set average-speed to: ${value}`);
-    } else {
-        console.error('Element with ID average-speed not found!');
     }
     
     // Maximum altitude - from CSV data
     const maxAltitude = document.getElementById('max-altitude');
-    console.log('Max altitude element:', maxAltitude);
     if (maxAltitude) {
         const value = `${formatNumberWithAbbreviation(speciesStats.maxAltitude)} m`;
         maxAltitude.textContent = value;
-        console.log(`Set max-altitude to: ${value}`);
-    } else {
-        console.error('Element with ID max-altitude not found!');
     }
     
     // Success rate - from CSV migration success data
     const successRate = document.getElementById('success-rate');
-    console.log('Success rate element:', successRate);
     if (successRate) {
         const value = `${Math.round(speciesStats.successRate * 100)}%`;
         successRate.textContent = value;
-        console.log(`Set success-rate to: ${value}`);
-    } else {
-        console.error('Element with ID success-rate not found!');
     }
     
     // Energy consumption - calculated from flight duration and bird physiology
     const energyConsumption = document.getElementById('energy-consumption');
-    console.log('Energy consumption element:', energyConsumption);
     if (energyConsumption) {
         const value = `${Math.round(speciesStats.averageEnergyLoss * 100)}%`;
         energyConsumption.textContent = value;
-        console.log(`Set energy-consumption to: ${value}`);
-    } else {
-        console.error('Element with ID energy-consumption not found!');
     }
-    
-    console.log(`Finished updating migration stats for ${selectedBird}`);
 }
 
 // Update migration info text
@@ -4324,6 +4224,11 @@ function updateWeatherEducation(weather) {
     // Update statistics
     const statsContainer = document.querySelector('.weather-stats-container');
     if (statsContainer) {
+        // Ensure the stats container is immediately visible
+        statsContainer.style.opacity = '1';
+        statsContainer.style.transform = 'translateY(0)';
+        statsContainer.style.transition = 'all 0.3s ease';
+        
         statsContainer.innerHTML = '';
         
         // Create array to ensure Success Rate appears last
@@ -4347,6 +4252,11 @@ function updateWeatherEducation(weather) {
             
             // Apply background color based on positive/negative
             statItem.style.background = `linear-gradient(135deg, ${statColor}, rgba(255, 255, 255, 0.1))`;
+            
+            // Ensure individual stat items are immediately visible
+            statItem.style.opacity = '1';
+            statItem.style.transform = 'translateX(0)';
+            statItem.style.transition = 'all 0.3s ease';
             
             statsContainer.appendChild(statItem);
         });
@@ -4377,6 +4287,11 @@ function updateWeatherEducation(weather) {
             
             // Apply success rate color coding
             statItem.style.background = `linear-gradient(135deg, ${successColor}, rgba(255, 255, 255, 0.1))`;
+            
+            // Ensure success rate item is immediately visible
+            statItem.style.opacity = '1';
+            statItem.style.transform = 'translateX(0)';
+            statItem.style.transition = 'all 0.3s ease';
             
             statsContainer.appendChild(statItem);
         }
@@ -4771,6 +4686,105 @@ const optimizeMobileChart = () => {
     }
 };
 
+// Initialize scroll-triggered animations for all sections
+function initializeSectionAnimations() {
+    const observerOptions = {
+        root: null,
+        rootMargin: '-10% 0px -10% 0px', // Trigger when section is 10% visible
+        threshold: 0.1
+    };
+
+    // Special observer for bird selection section with optimal triggering
+    const birdSelectionObserverOptions = {
+        root: null,
+        rootMargin: '-20% 0px -20% 0px', // Trigger when section is 20% visible from top and bottom
+        threshold: 0.2 // Require 20% of section to be visible
+    };
+
+    const sectionObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+                console.log(`Section ${entry.target.className} is now visible and animated`);
+            }
+        });
+    }, observerOptions);
+
+    const birdSelectionObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting && !entry.target.classList.contains('visible')) {
+                entry.target.classList.add('visible');
+                console.log('Bird selection section is now visible and animated');
+                
+                // Trigger staggered animations for individual elements
+                setTimeout(() => {
+                    triggerBirdSelectionAnimations(entry.target);
+                }, 100);
+            }
+        });
+    }, birdSelectionObserverOptions);
+
+    // Observe sections with regular settings
+    const regularSectionsToObserve = [
+        '.journey-section',
+        '.migration-patterns-section', 
+        '.migration-path-section',
+        '.challenges-section',
+        '.sustainability-section',
+        '.action-section',
+        '.footer-section'
+    ];
+
+    regularSectionsToObserve.forEach(selector => {
+        const section = document.querySelector(selector);
+        if (section) {
+            sectionObserver.observe(section);
+            console.log(`Started observing ${selector} for scroll animations`);
+        }
+    });
+
+    // Observe bird selection section with optimal settings
+    const birdSelectionSection = document.querySelector('.bird-selection-section');
+    if (birdSelectionSection) {
+        birdSelectionObserver.observe(birdSelectionSection);
+        console.log('Started observing .bird-selection-section for scroll-triggered animations');
+    }
+}
+
+// Trigger individual animations for bird selection elements
+function triggerBirdSelectionAnimations(sectionElement) {
+    console.log('Triggering bird selection animations');
+    
+    // Ensure all elements start in their initial animated state
+    const animatedElements = [
+        '.bird-selection-title',
+        '.selected-bird-image',
+        '.migration-fact',
+        '.bird-description-container',
+        '.bird-grid-container'
+    ];
+    
+    animatedElements.forEach(selector => {
+        const element = sectionElement.querySelector(selector);
+        if (element) {
+            // Remove any existing animation classes and re-add them to restart animations
+            element.style.opacity = '0';
+            element.style.transform = 'translateY(30px)';
+            
+            // Force reflow to ensure initial state is applied
+            element.offsetHeight;
+            
+            // Let CSS animations take over
+            setTimeout(() => {
+                element.style.opacity = '';
+                element.style.transform = '';
+            }, 50);
+            
+            console.log(`Triggered animation for ${selector}`);
+        }
+    });
+}
+
 // Initialize everything when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
     // Create the HTML structure
@@ -4792,6 +4806,11 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Optimize chart for mobile after creation
     setTimeout(optimizeMobileChart, 100);
+    
+    // Initialize scroll-triggered animations for all sections
+    setTimeout(() => {
+        initializeSectionAnimations();
+    }, 500);
     
     // Add event listener to Begin Journey button
     document.querySelector('.begin-journey-btn').addEventListener('click', showJourneySection);

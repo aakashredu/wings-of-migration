@@ -9,29 +9,19 @@ class BirdMigrationProcessor {
 
     async processBirdData(species) {
         this.currentSpecies = species;
-        console.log(`=== PROCESSING ${species.toUpperCase()} DATA ===`);
         
         try {
             const csvFileName = `${species}_origin_destination.csv`;
-            console.log(`Attempting to fetch: ./data/${csvFileName}`);
-            
             const response = await fetch(`./data/${csvFileName}`);
-            console.log(`Fetch response status: ${response.status} ${response.statusText}`);
             
             if (!response.ok) {
                 throw new Error(`CSV file not found: ${csvFileName} (${response.status})`);
             }
             
             const csvText = await response.text();
-            console.log(`Fetched CSV text length: ${csvText.length} characters`);
-            console.log(`First 200 characters: ${csvText.substring(0, 200)}`);
-            
             this.migrationData = this.parseCSV(csvText);
             
-            console.log(`Found ${this.migrationData.length} ${species} migration records from CSV`);
-            
             if (this.migrationData.length === 0) {
-                console.error(`❌ NO REAL DATA FOUND: CSV parsing failed for ${species}. Refusing to show synthetic data.`);
                 return {
                     species: species,
                     totalRecords: 0,
@@ -41,8 +31,6 @@ class BirdMigrationProcessor {
                     rawData: []
                 };
             }
-            
-            console.log(`✅ USING REAL CSV DATA: ${this.migrationData.length} actual ${species} migration records`);
             
             this.createMigrationCorridors();
             this.createMigrationWaves();
@@ -58,8 +46,7 @@ class BirdMigrationProcessor {
             };
             
         } catch (error) {
-            console.error(`❌ CSV ERROR for ${species}:`, error);
-            console.error(`❌ REFUSING TO SHOW SYNTHETIC DATA - Only real CSV data allowed`);
+            console.error(`CSV ERROR for ${species}:`, error);
             return {
                 species: species,
                 totalRecords: 0,
@@ -72,29 +59,9 @@ class BirdMigrationProcessor {
     }
 
     parseCSV(csvText) {
-        console.log(`Starting CSV parsing. Text length: ${csvText.length}`);
         const lines = csvText.trim().split('\n');
-        console.log(`Found ${lines.length} lines in CSV`);
-        console.log(`Headers: ${lines[0]}`);
-        
-        // Test with first few data lines
-        if (lines.length > 1) {
-            console.log(`\n=== DETAILED CSV DEBUGGING ===`);
-            for (let testIdx = 1; testIdx <= Math.min(3, lines.length - 1); testIdx++) {
-                console.log(`\nTesting line ${testIdx}:`);
-                console.log(`Raw line: "${lines[testIdx]}"`);
-                console.log(`Line length: ${lines[testIdx].length} characters`);
-                console.log(`Line ends with: "${lines[testIdx].slice(-10)}"`);
-                const testRecord = this.parseCSVLine(lines[testIdx]);
-                console.log(`Parsing result:`, testRecord);
-            }
-            console.log(`=== END DETAILED DEBUGGING ===\n`);
-        }
-        
         const headers = lines[0].split(',');
         const data = [];
-        let successCount = 0;
-        let errorCount = 0;
         
         for (let i = 1; i < lines.length; i++) {
             const line = lines[i];
@@ -103,19 +70,8 @@ class BirdMigrationProcessor {
             const record = this.parseCSVLine(line);
             if (record) {
                 data.push(record);
-                successCount++;
-                if (i <= 5) {
-                    console.log(`✅ Successfully parsed record ${i}:`, record);
-                }
-            } else {
-                errorCount++;
-                if (errorCount <= 5) {
-                    console.log(`❌ Failed to parse line ${i}: ${line.substring(0, 100)}...`);
-                }
             }
         }
-        
-        console.log(`CSV parsing complete. Success: ${successCount}, Errors: ${errorCount}, Total records: ${data.length}`);
         
         return data;
     }
@@ -140,29 +96,17 @@ class BirdMigrationProcessor {
             }
             parts.push(current.trim());
             
-            console.log(`Parsed line into ${parts.length} parts:`, parts);
-            
             if (parts.length !== 5) {
-                console.log(`❌ Skipping malformed line (expected exactly 5 columns, got ${parts.length}): ${line}`);
-                console.log(`❌ Parts found:`, parts);
                 return null;
             }
             
             const [birdId, species, origin, destination, migrationSuccess] = parts;
-            
-            console.log(`✅ Parsing line with ${parts.length} columns - Migration Success: "${migrationSuccess}"`);
-            
-            console.log(`Field values - Origin: "${origin}", Destination: "${destination}"`);
-            
             const originCoords = origin.split(',').map(s => parseFloat(s.trim()));
             const destCoords = destination.split(',').map(s => parseFloat(s.trim()));
-            
-            console.log(`Parsed coordinates - Origin: [${originCoords}], Dest: [${destCoords}]`);
             
             if (originCoords.length !== 2 || destCoords.length !== 2 || 
                 isNaN(originCoords[0]) || isNaN(originCoords[1]) || 
                 isNaN(destCoords[0]) || isNaN(destCoords[1])) {
-                console.log(`❌ Invalid coordinates - Origin: ${originCoords}, Dest: ${destCoords}`);
                 return null;
             }
             
@@ -184,7 +128,7 @@ class BirdMigrationProcessor {
                 Region: this.determineRegion(originCoords[0], originCoords[1], destCoords[0], destCoords[1])
             };
         } catch (error) {
-            console.error('❌ Error parsing CSV line:', line, error);
+            console.error('Error parsing CSV line:', line, error);
             return null;
         }
     }
